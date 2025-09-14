@@ -665,11 +665,12 @@ function rapidtextai_generate_auto_blog_post() {
     // Use max_completion_tokens for gpt-5, max_tokens for other models
     if (strpos($settings['model'], 'gpt-5') !== false) {
         $post_data['max_completion_tokens'] = 4000;
+        $post_data['reasoning_effort'] = 'low';
     } else {
         $post_data['max_tokens'] = 4000;
         $post_data['temperature'] = 0.7;
     }
-    
+
     // API endpoint with API key
     $api_url = "https://app.rapidtextai.com/openai/v1/chat/completionsarticle?gigsixkey=" . urlencode($api_key);
     
