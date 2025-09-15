@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 define('RAPIDTEXTAI_PLUGIN_DIR', plugin_dir_path( __FILE__ ));
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-meta-box.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-openaihandler.php';
+require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-chatbot-tools.php';
 
 add_action('admin_notices', 'rapidtextai_admin_notice');
 
