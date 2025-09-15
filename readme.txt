@@ -79,25 +79,6 @@ For detailed terms and privacy, visit the following links:
 3. Enter your prompt in the block to generate AI content instantly.
 4. Customize the output text as needed using the editor.
 
-== Chatbot Tools ==
-
-Expose custom PHP callbacks to the RapidTextAI chatbot using the tool registry.
-
-```php
-rapidtextai_register_tool_callback('book_room', function( $args ) {
-    $name = sanitize_text_field( $args['name'] );
-    $date = sanitize_text_field( $args['date'] );
-
-    // your booking logic here
-    return [ 'status' => 'success', 'message' => "Booked $name on $date" ];
-});
-
-// Save a snippet for later reuse
-rapidtextai_save_tool_snippet('greet_user', 'return "Hello " . sanitize_text_field($args["name"]);');
-```
-
-See `tool-example.json` for an OpenAI tool definition describing the `book_room` callback.
-
 == Screenshots ==
 
 1. **Screenshot 7** - RapidTextAI Article Advance Generate
