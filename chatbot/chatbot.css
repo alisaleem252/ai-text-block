@@ -1,0 +1,24 @@
+.rapidtextai-chatbot {
+    border: 1px solid #ccc;
+    padding: 10px;
+    max-width: 400px;
+}
+.rapidtextai-chatbot-messages {
+    height: 200px;
+    overflow-y: auto;
+    margin-bottom: 10px;
+}
+.rapidtextai-chatbot-messages .rapidtextai-user {
+    background: #e0f7fa;
+    padding: 5px;
+    margin: 5px 0;
+}
+.rapidtextai-chatbot-messages .rapidtextai-assistant {
+    background: #f1f8e9;
+    padding: 5px;
+    margin: 5px 0;
+}
+.rapidtextai-chatbot-messages .rapidtextai-error {
+    color: red;
+    padding: 5px;
+}
