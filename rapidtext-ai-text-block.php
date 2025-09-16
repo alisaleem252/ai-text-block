@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 3.5.0
+* Version: 3.6.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -10,8 +10,10 @@
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly 
 define('RAPIDTEXTAI_PLUGIN_DIR', plugin_dir_path( __FILE__ ));
+define('RAPIDTEXTAI_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-meta-box.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-openaihandler.php';
+require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/chatbots/chatbots.php';
 
 add_action('admin_notices', 'rapidtextai_admin_notice');
 

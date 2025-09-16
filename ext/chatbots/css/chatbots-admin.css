@@ -1,0 +1,378 @@
+/* Chatbot Admin Styles */
+.wrap .wp-heading-inline {
+    margin-bottom: 10px;
+}
+
+/* Tabs */
+#chatbot-tabs {
+    margin-top: 20px;
+}
+
+#chatbot-tabs .ui-tabs-nav {
+    background: #f1f1f1;
+    border-bottom: 1px solid #ddd;
+    padding: 0;
+    margin: 0;
+}
+
+#chatbot-tabs .ui-tabs-nav li {
+    list-style: none;
+    display: inline-block;
+    margin: 0;
+    padding: 0;
+}
+
+#chatbot-tabs .ui-tabs-nav li a {
+    display: block;
+    padding: 12px 20px;
+    text-decoration: none;
+    color: #666;
+    border-right: 1px solid #ddd;
+    transition: all 0.3s ease;
+}
+
+#chatbot-tabs .ui-tabs-nav li.ui-tabs-active a,
+#chatbot-tabs .ui-tabs-nav li a:hover {
+    background: #fff;
+    color: #333;
+}
+
+#chatbot-tabs .ui-tabs-panel {
+    background: #fff;
+    border: 1px solid #ddd;
+    border-top: none;
+    padding: 20px;
+    min-height: 400px;
+}
+
+/* Form Styles */
+#chatbot-form .form-table {
+    margin-top: 0;
+}
+
+#chatbot-form .form-table th {
+    width: 200px;
+    vertical-align: top;
+    padding-top: 15px;
+}
+
+#chatbot-form .form-table td {
+    padding-top: 10px;
+}
+
+/* Color Picker */
+.wp-picker-container {
+    display: inline-block;
+}
+
+/* Knowledge Base Styles */
+#knowledge-base-container {
+    margin-bottom: 20px;
+}
+
+.knowledge-item {
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    background: #f9f9f9;
+}
+
+.knowledge-item-header {
+    background: #efefef;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.knowledge-item-title {
+    font-weight: 600;
+    color: #333;
+}
+
+.knowledge-item-content {
+    padding: 15px;
+    display: none;
+}
+
+.knowledge-item.expanded .knowledge-item-content {
+    display: block;
+}
+
+.knowledge-item-content input,
+.knowledge-item-content textarea {
+    margin-bottom: 10px;
+}
+
+.knowledge-item-content input[type="text"] {
+    width: 100%;
+    margin-bottom: 10px;
+}
+
+.knowledge-item-content textarea {
+    width: 100%;
+    resize: vertical;
+}
+
+/* Tools Styles */
+#tools-container {
+    margin-bottom: 20px;
+}
+
+.tool-item {
+    border: 1px solid #ddd;
+    margin-bottom: 15px;
+    border-radius: 4px;
+    background: #f9f9f9;
+}
+
+.tool-item-header {
+    background: #e8f4fd;
+    padding: 10px 15px;
+    border-bottom: 1px solid #ddd;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    cursor: pointer;
+}
+
+.tool-item-title {
+    font-weight: 600;
+    color: #0073aa;
+}
+
+.tool-item-content {
+    padding: 15px;
+    display: none;
+}
+
+.tool-item.expanded .tool-item-content {
+    display: block;
+}
+
+.tool-item-content .form-table {
+    margin: 0;
+}
+
+.tool-item-content .form-table th {
+    width: 150px;
+    padding: 10px 0;
+}
+
+.tool-item-content .form-table td {
+    padding: 10px 0;
+}
+
+
+.code-editor {
+    font-family: 'Courier New', monospace;
+    font-size: 13px;
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+}
+
+/* Button Styles */
+.button.remove-knowledge,
+.button.remove-tool,
+.button.remove-function {
+    background: #dc3545;
+    color: white;
+    border-color: #dc3545;
+}
+
+.button.remove-knowledge:hover,
+.button.remove-tool:hover,
+.button.remove-function:hover {
+    background: #c82333;
+    border-color: #c82333;
+}
+
+.button.test-function {
+    background: #28a745;
+    color: white;
+    border-color: #28a745;
+}
+
+.button.test-function:hover {
+    background: #218838;
+    border-color: #218838;
+}
+
+/* List Table Styles */
+.wp-list-table .status-active {
+    color: #28a745;
+    font-weight: 600;
+}
+
+.wp-list-table .status-inactive {
+    color: #dc3545;
+    font-weight: 600;
+}
+
+.wp-list-table code {
+    background: #f1f1f1;
+    padding: 4px 8px;
+    border-radius: 3px;
+    font-size: 12px;
+}
+
+/* Postbox Styles */
+.postbox {
+    margin-top: 20px;
+}
+
+.postbox .inside {
+    padding: 15px;
+}
+
+.postbox code {
+    background: #f1f1f1;
+    padding: 8px 12px;
+    border-radius: 4px;
+    display: inline-block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #0073aa;
+}
+
+/* Notice Styles */
+.notice.notice-warning {
+    border-left-color: #ffb900;
+}
+
+.notice.notice-warning p {
+    margin: 10px 0;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    #chatbot-tabs .ui-tabs-nav li {
+        display: block;
+        width: 100%;
+    }
+    
+    #chatbot-tabs .ui-tabs-nav li a {
+        border-right: none;
+        border-bottom: 1px solid #ddd;
+    }
+    
+    .knowledge-item-header,
+    .tool-item-header,
+    .php-function-item-header {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 10px;
+    }
+    
+    .knowledge-item-header .button,
+    .tool-item-header .button,
+    .php-function-item-header .button {
+        margin-left: 0;
+    }
+    
+    #chatbot-form .form-table th,
+    #chatbot-form .form-table td {
+        display: block;
+        width: 100%;
+        padding: 10px 0;
+    }
+    
+    #chatbot-form .form-table th {
+        border-bottom: none;
+    }
+}
+
+/* Sortable styles */
+.ui-sortable-helper {
+    opacity: 0.8;
+    transform: rotate(2deg);
+}
+
+.ui-sortable-placeholder {
+    border: 2px dashed #ccc;
+    background: #f9f9f9;
+    visibility: visible !important;
+    height: 50px;
+    margin: 10px 0;
+}
+
+/* Loading states */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+.spinner {
+    float: none;
+    display: inline-block;
+    margin: 0 5px;
+}
+
+/* Test function modal styles */
+.test-function-modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.5);
+    z-index: 100000;
+}
+
+.test-function-modal-content {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: white;
+    padding: 20px;
+    border-radius: 5px;
+    max-width: 600px;
+    width: 90%;
+    max-height: 80%;
+    overflow-y: auto;
+}
+
+.test-function-result {
+    background: #f5f5f5;
+    border: 1px solid #ddd;
+    padding: 10px;
+    margin-top: 10px;
+    border-radius: 3px;
+    white-space: pre-wrap;
+    font-family: monospace;
+}
+
+/* Validation styles */
+.error {
+    border-color: #dc3545 !important;
+    background-color: #f8d7da !important;
+}
+
+.error-message {
+    color: #dc3545;
+    font-size: 12px;
+    margin-top: 5px;
+    display: block;
+}
+
+/* Success styles */
+.success {
+    border-color: #28a745 !important;
+    background-color: #d4edda !important;
+}
+
+/* Animation */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(-10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+.knowledge-item,
+.tool-item,
+.php-function-item {
+    animation: fadeIn 0.3s ease-out;
+}

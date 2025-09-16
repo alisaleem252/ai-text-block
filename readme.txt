@@ -45,7 +45,27 @@ With **RapidTextAI**, you can:
 - Grok 3
 - Claude 3.7
 
+**AI Chatbots**:
+Create intelligent, customizable AI-powered chat widgets for your website with RapidTextAI's advanced chatbot system. Build sophisticated conversational experiences that can handle customer support, lead generation, product inquiries, and more.
 
+**Chatbot Features**:
+- **Multiple AI Models**: Power your chatbots with GPT-3.5, GPT-4, GPT-5, Claude 3.7, Gemini 2.0/2.5, DeepSeek v3/R3, or Grok 2/3
+- **Custom Knowledge Base**: Upload documents and information to give your chatbots specific knowledge about your business
+- **External Tool Integration**: Connect chatbots to external APIs for booking appointments, creating tickets, fetching data, and more
+- **Fully Customizable Appearance**: Control colors, themes, positioning, size, avatars, and auto-open behavior
+- **Conversation Management**: Smart conversation flow with system messages and welcome greetings
+- **Easy Embedding**: Use simple shortcodes to place chatbots anywhere on your site
+- **Advanced Settings**: Configure temperature, max tokens, and other AI parameters for optimal responses
+- **Multi-Chatbot Support**: Create unlimited chatbots for different purposes and pages
+
+**Chatbot Use Cases**:
+- Customer support and FAQ assistance
+- Product recommendations and sales
+- Lead generation and contact forms
+- Appointment booking and scheduling
+- Technical support and troubleshooting
+- Educational content and tutorials
+- Interactive marketing campaigns
 
 
 = Usage =
@@ -93,6 +113,11 @@ For detailed terms and privacy, visit the following links:
 4. **Screenshot 8** - RapidTextAI Auto Blogging
 ![Screenshot 8](screenshot-8.png)
 
+5. **Screenshot 9** - RapidTextAI Chatbots
+![Screenshot 9](screenshot-9.png)
+
+6. **Screenshot 10** - RapidTextAI Chatbots Frontend
+![Screenshot 10](screenshot-10.png)
 
 == Frequently Asked Questions ==
 
@@ -108,7 +133,53 @@ A: The plugin leverages the RapidTextAI platform. Please check the RapidTextAI s
 **Q: Can I customize the generated AI text?**  
 A: Yes! Once the AI generates the content, you can fully edit and format it within your WP Bakery or Elementor editor.
 
+**Q: What is the AI Chatbots feature?**  
+A: The AI Chatbots feature allows you to create and manage custom AI-powered chat widgets for your website. You can configure multiple chatbots with different personalities, knowledge bases, and functionalities to serve various purposes like customer support, lead generation, or general assistance.
+
+**Q: How do I create and manage chatbots?**  
+A: After authentication, navigate to the "AI Chatbots" section from your WordPress admin dashboard. You can create new chatbots, customize their appearance, configure AI models, add knowledge bases, and integrate external tools. Each chatbot gets a unique shortcode for embedding anywhere on your site.
+
+**Q: Can I customize the appearance of my chatbots?**  
+A: Yes! You can fully customize your chatbot's appearance including colors (primary, secondary, text, background), themes, positioning (bottom-right, bottom-left, etc.), size, avatar images, and whether it auto-opens on page load.
+
+**Q: What AI models are supported for chatbots?**  
+A: Chatbots support the same AI models as article generation including GPT-3.5, GPT-4, GPT-5, Claude 3.7, Gemini 2.0/2.5, DeepSeek v3/R3, and Grok 2/3. You can select different models for different chatbots based on your needs.
+
+**Q: How does the knowledge base feature work in chatbots?**  
+A: You can add custom knowledge base documents to your chatbots, providing them with specific information about your business, products, or services. The AI will use this context to provide more accurate and relevant responses to user queries.
+
+**Q: Can chatbots integrate with external tools and APIs?**  
+A: Yes! Chatbots support external tool integration via API calls. You can configure tools to fetch data from external services, create tickets, book appointments, or perform other actions based on user interactions.
+
+**Q: How do I embed a chatbot on my website?**  
+A: Each chatbot generates a unique shortcode like `[rapidtextai_chatbot id="123"]`. You can embed this shortcode in any post, page, or widget area. The chatbot will appear as a floating widget that users can interact with.
+
+**Q: Is the Auto Blogging feature safe for SEO?**  
+A: The Auto Blogging feature generates unique, high-quality content using advanced AI models. However, we recommend reviewing generated content before publication and maintaining a balance between AI-generated and human-created content for optimal SEO performance.
+
+**Q: How does the Auto Blogging scheduling work?**  
+A: You can configure Auto Blogging to generate and publish posts automatically on daily, weekly, or custom schedules. The system uses your specified topics, keywords, and content parameters to create relevant articles without manual intervention.
+
+**Q: Are there any usage limits or costs?**  
+A: Usage depends on your RapidTextAI subscription plan. Free accounts have limited monthly requests, while paid plans offer higher limits or unlimited usage. Check your account status in the plugin settings for current usage and plan details.
+
+**Q: Can I use the Chrome extension and mobile app?**  
+A: Yes! RapidTextAI offers a Chrome extension for browser-based content generation and a mobile app for on-the-go access. Both use the same API key as your WordPress plugin for seamless integration across platforms.
+
+**Q: Is my data secure when using RapidTextAI?**  
+A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
+
 == Changelog ==
+
+= 3.6.0 =
+* Added AI Chatbots feature with customizable chat widgets
+* Support for multiple AI models in chatbots (GPT-3.5, GPT-4, etc.)
+* Customizable chatbot appearance with themes and color options
+* Knowledge base integration for context-aware responses
+* External tool integration via API calls for enhanced functionality
+* Chatbot shortcode support for embedding anywhere on site
+* Advanced chatbot settings including auto-open, positioning, and avatars
+* Comprehensive chatbot management interface with create, edit, delete options
 
 = 3.5.0 =
 * Streaming Content

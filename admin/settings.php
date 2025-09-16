@@ -29,25 +29,24 @@
                                     <span><?php esc_html_e('API Key is already configured. You can re-authenticate to refresh your connection.', 'rapidtextai'); ?></span>
                                 </div>
                                 <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 16px; margin-top: 16px;">
-                                    <div class="rapidtextai-card rapidtextai-chat-card">
+                                    <div class="rapidtextai-card rapidtextai-chatbots-card">
                                         <div class="rapidtextai-card-header">
-                                            <h2><?php esc_html_e('AI Chat Interface', 'rapidtextai'); ?></h2>
+                                            <h2><?php esc_html_e('AI Chatbots', 'rapidtextai'); ?></h2>
                                         </div>
                                         <div class="rapidtextai-card-body">
-                                            <div class="rapidtextai-chat-preview">
-                                                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDIwMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjhGOUZBIi8+CjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxNSIgcng9IjciIGZpbGw9IiMyMjcxQjEiLz4KPHJlY3QgeD0iMTAiIHk9IjMwIiB3aWR0aD0iMTQwIiBoZWlnaHQ9IjEwIiByeD0iNSIgZmlsbD0iI0U5RUNFRiIvPgo8cmVjdCB4PSI3MCIgeT0iNTAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTUiIHJ4PSI3IiBmaWxsPSIjNjQ2OTcwIi8+CjxyZWN0IHg9IjcwIiB5PSI3MCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMCIgcng9IjUiIGZpbGw9IiNFOUVDRUYiLz4KPGNpcmNsZSBjeD0iMTc1IiBjeT0iOTUiIHI9IjE1IiBmaWxsPSIjMjI3MUIxIi8+CjxwYXRoIGQ9Ik0xNzEgOTFIMTc5VjEwMCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+" alt="Chat Interface Preview" class="rapidtextai-chat-image" />
+                                            <div class="rapidtextai-chatbots-preview">
+                                                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDIwMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjhGOUZBIi8+CjxyZWN0IHg9IjIwIiB5PSIyMCIgd2lkdGg9IjE2MCIgaGVpZ2h0PSI4MCIgcng9IjgiIGZpbGw9IiNGRkYiIHN0cm9rZT0iI0UyRTRFNyIgc3Ryb2tlLXdpZHRoPSIxIi8+CjxyZWN0IHg9IjMwIiB5PSIzMCIgd2lkdGg9IjgwIiBoZWlnaHQ9IjEyIiByeD0iNiIgZmlsbD0iIzIyNzFCMSIvPgo8cmVjdCB4PSIzMCIgeT0iNDgiIHdpZHRoPSI2MCIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0iI0U5RUNFRiIvPgo8cmVjdCB4PSIxMDAiIHk9IjYwIiB3aWR0aD0iNzAiIGhlaWdodD0iMTIiIHJ4PSI2IiBmaWxsPSIjNkY0N0VCIi8+CjxyZWN0IHg9IjEwMCIgeT0iNzgiIHdpZHRoPSI1MCIgaGVpZ2h0PSI4IiByeD0iNCIgZmlsbD0iI0U5RUNFRiIvPgo8Y2lyY2xlIGN4PSIxNjAiIGN5PSI0MCIgcj0iMTAiIGZpbGw9IiMwMEE0OEEiLz4KPHBhdGggZD0iTTE1NSA0MEgxNjVNMTYwIDM1VjQ1IiBzdHJva2U9IndoaXRlIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8Y2lyY2xlIGN4PSIxNzAiIGN5PSI3MCIgcj0iOCIgZmlsbD0iI0ZGNjUwMCIvPgo8cGF0aCBkPSJNMTY2IDcwTDE3NCA3MCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIxLjUiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIvPgo8L3N2Zz4=" alt="AI Chatbots Preview" class="rapidtextai-chatbots-image" />
                                             </div>
-                                            <p class="rapidtextai-chat-description">
-                                                <?php esc_html_e('Access the AI chat interface to have conversations and get instant responses from RapidTextAI.', 'rapidtextai'); ?>
+                                            <p class="rapidtextai-chatbots-description">
+                                                <?php esc_html_e('Create and manage multiple AI chatbots with custom tools and knowledge bases for your specific needs.', 'rapidtextai'); ?>
                                             </p>
-                                            <a href="https://app.rapidtextai.com/api?action=mobile-login&gigsixkey=<?php echo $current_api_key ?>" target="_blank" class="rapidtextai-btn rapidtextai-btn-primary rapidtextai-chat-btn">
-                                                <span class="dashicons dashicons-format-chat"></span>
-                                                <?php esc_html_e('Chatbot', 'rapidtextai'); ?>
-                                                <span class="dashicons dashicons-external"></span>
+                                            <a href="<?php echo admin_url('admin.php?page=rapidtextai-chatbots'); ?>" class="rapidtextai-btn rapidtextai-btn-primary rapidtextai-chatbots-btn">
+                                                <span class="dashicons dashicons-admin-users"></span>
+                                                <?php esc_html_e('Manage Chatbots', 'rapidtextai'); ?>
+                                                <span class="dashicons dashicons-arrow-right-alt"></span>
                                             </a>
                                         </div>
                                     </div>
-                                    
                                     <div class="rapidtextai-card rapidtextai-autoblog-card">
                                         <div class="rapidtextai-card-header">
                                             <h2><?php esc_html_e('Auto Blogging', 'rapidtextai'); ?></h2>
@@ -85,7 +84,6 @@
                                             </a>
                                         </div>
                                     </div>
-
                                     <div class="rapidtextai-card rapidtextai-extension-card">
                                         <div class="rapidtextai-card-header">
                                             <h2><?php esc_html_e('Chrome Extension', 'rapidtextai'); ?></h2>
@@ -123,6 +121,26 @@
                                             </a>
                                         </div>
                                     </div>
+
+                                    <div class="rapidtextai-card rapidtextai-chat-card">
+                                        <div class="rapidtextai-card-header">
+                                            <h2><?php esc_html_e('AI Chat Interface', 'rapidtextai'); ?></h2>
+                                        </div>
+                                        <div class="rapidtextai-card-body">
+                                            <div class="rapidtextai-chat-preview">
+                                                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjEyMCIgdmlld0JveD0iMCAwIDIwMCAxMjAiIGZpbGw9Im5vbmUiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+CjxyZWN0IHdpZHRoPSIyMDAiIGhlaWdodD0iMTIwIiBmaWxsPSIjRjhGOUZBIi8+CjxyZWN0IHg9IjEwIiB5PSIxMCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxNSIgcng9IjciIGZpbGw9IiMyMjcxQjEiLz4KPHJlY3QgeD0iMTAiIHk9IjMwIiB3aWR0aD0iMTQwIiBoZWlnaHQ9IjEwIiByeD0iNSIgZmlsbD0iI0U5RUNFRiIvPgo8cmVjdCB4PSI3MCIgeT0iNTAiIHdpZHRoPSIxMjAiIGhlaWdodD0iMTUiIHJ4PSI3IiBmaWxsPSIjNjQ2OTcwIi8+CjxyZWN0IHg9IjcwIiB5PSI3MCIgd2lkdGg9IjEwMCIgaGVpZ2h0PSIxMCIgcng9IjUiIGZpbGw9IiNFOUVDRUYiLz4KPGNpcmNsZSBjeD0iMTc1IiBjeT0iOTUiIHI9IjE1IiBmaWxsPSIjMjI3MUIxIi8+CjxwYXRoIGQ9Ik0xNzEgOTFIMTc5VjEwMCIgc3Ryb2tlPSJ3aGl0ZSIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiLz4KPC9zdmc+" alt="Chat Interface Preview" class="rapidtextai-chat-image" />
+                                            </div>
+                                            <p class="rapidtextai-chat-description">
+                                                <?php esc_html_e('Access the AI chat interface to have conversations and get instant responses from RapidTextAI.', 'rapidtextai'); ?>
+                                            </p>
+                                            <a href="https://app.rapidtextai.com/api?action=mobile-login&gigsixkey=<?php echo $current_api_key ?>" target="_blank" class="rapidtextai-btn rapidtextai-btn-primary rapidtextai-chat-btn">
+                                                <span class="dashicons dashicons-format-chat"></span>
+                                                <?php esc_html_e('Ask RapidTextAI', 'rapidtextai'); ?>
+                                                <span class="dashicons dashicons-external"></span>
+                                            </a>
+                                        </div>
+                                    </div>
+
                                 </div>
 
                                 
