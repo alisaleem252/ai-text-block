@@ -276,6 +276,10 @@ jQuery(document).ready(function($) {
                 }
             });
         }
+        // if cancel create draft
+        else {
+            localStorage.removeItem('rapidtextai_chatbot_draft');
+        }
     });
     
     // Clear draft on successful save

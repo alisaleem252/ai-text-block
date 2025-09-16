@@ -282,6 +282,38 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
                 </div>
                 
                 <button type="button" id="add-tool" class="button">Add Tool</button>
+
+
+                <div class="integration-suggestions mt-4 p-4 border border-gray-300 rounded-lg bg-gray-50">
+                    <h4>Need to create custom endpoints or add PHP code?</h4>
+                    <p>Consider these helpful WordPress plugins:</p>
+                    <ul>
+                        <li>
+                            <strong><a href="<?php echo admin_url('plugin-install.php?s=Code%2520Snippets&tab=search&type=term'); ?>" target="_blank">Code Snippets</a></strong> - 
+                            Safely add PHP code snippets to your site without editing theme files
+                        </li>
+                        <li>
+                            <strong><a href="<?php echo admin_url('plugin-install.php?s=Custom%2520Post%2520Type%2520UI&tab=search&type=term'); ?>" target="_blank">Custom Post Type UI</a></strong> - 
+                            Create custom post types and fields for structured data
+                        </li>
+                        <li>
+                            <strong><a href="<?php echo admin_url('plugin-install.php?s=WP%2520REST%2520API%2520Controller&tab=search&type=term'); ?>" target="_blank">WP REST API Controller</a></strong> - 
+                            Easily create custom REST API endpoints
+                        </li>
+                        <li>
+                            <strong><a href="<?php echo admin_url('plugin-install.php?s=Insert%2520PHP&tab=search&type=term'); ?>" target="_blank">Insert PHP</a></strong> - 
+                            Add PHP code snippets anywhere on your site
+                        </li>
+                        <li>
+                            <strong><a href="<?php echo admin_url('plugin-install.php?s=REST%2520API%2520Extensions&tab=search&type=term'); ?>" target="_blank">REST API Extensions</a></strong> - 
+                            Extend WordPress REST API functionality
+                        </li>
+                    </ul>
+                    <p class="description">
+                        These plugins can help you create custom endpoints that your chatbot tools can integrate with, 
+                        or add custom PHP functions to process data for your chatbot.
+                    </p>
+                </div>
             </div>
             
             
