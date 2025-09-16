@@ -200,7 +200,6 @@ function rapidtextai_get_chatbot($chatbot_id) {
         $chatbot['settings'] = json_decode($chatbot['settings'], true);
         $chatbot['knowledge_base'] = maybe_unserialize($chatbot['knowledge_base']);
         $chatbot['tools'] = maybe_unserialize($chatbot['tools']);
-        //$chatbot['php_functions'] = maybe_unserialize($chatbot['php_functions']);        
     }
     
     return $chatbot;
@@ -219,18 +218,6 @@ function rapidtextai_save_chatbot($data, $chatbot_id = 0) {
             return $tool;
         }, $data['tools']);
     }
-    // if ( isset($data['php_functions']) ) {
-    //     $data['php_functions'] = wp_unslash($data['php_functions']);
-    //     $php_functions = array_map(function($func) {
-    //         if (isset($func['parameters'])) {
-    //             $func['parameters'] = json_decode(stripslashes($func['parameters']), true);
-    //         }
-    //         if (isset($func['code'])) {
-    //             $func['code'] = stripslashes($func['code']);
-    //         }
-    //         return $func;
-    //     }, $data['php_functions']);
-    // }
 
     $chatbot_data = array(
         'name' => sanitize_text_field($data['name']),
@@ -256,7 +243,6 @@ function rapidtextai_save_chatbot($data, $chatbot_id = 0) {
         )),
         'knowledge_base' => maybe_serialize($data['knowledge_base']),
         'tools' => maybe_serialize($data['tools']),
-        // 'php_functions' => maybe_serialize($data['php_functions']),
         'updated_at' => current_time('mysql')
     );
     
@@ -306,7 +292,6 @@ function rapidtextai_get_default_chatbot_settings() {
         ),
         'knowledge_base' => array(),
         'tools' => array(),
-        // 'php_functions' => array(),
     );
 }
 
@@ -345,7 +330,6 @@ register_activation_hook(RAPIDTEXTAI_PLUGIN_DIR . '../rapidtext-ai-text-block.ph
 add_action('wp_ajax_rapidtextai_get_models', 'rapidtextai_get_models_callback');
 add_action('wp_ajax_rapidtextai_chatbot_message', 'rapidtextai_chatbot_message_callback');
 add_action('wp_ajax_nopriv_rapidtextai_chatbot_message', 'rapidtextai_chatbot_message_callback');
-// add_action('wp_ajax_rapidtextai_test_php_function', 'rapidtextai_test_php_function_callback');
 
 // Get available models
 function rapidtextai_get_models_callback() {
@@ -453,20 +437,6 @@ function rapidtextai_process_chatbot_message($chatbot, $message, $history) {
         }
     }
     
-    // Add PHP functions as tools
-    // if (!empty($chatbot['php_functions'])) {
-    //     foreach ($chatbot['php_functions'] as $php_func) {
-    //         $tools[] = array(
-    //             'type' => 'function',
-    //             'function' => array(
-    //                 'name' => $php_func['name'],
-    //                 'description' => $php_func['description'],
-    //                 'parameters' => json_decode($php_func['parameters'], true)
-    //             )
-    //         );
-    //     }
-    // }
-    
     // Prepare API request
     $api_data = array(
         'model' => $chatbot['model'],
@@ -517,20 +487,11 @@ function rapidtextai_handle_tool_calls($tool_calls, $chatbot) {
         $function_name = $tool_call['function']['name'];
         $arguments = json_decode($tool_call['function']['arguments'], true);
         
-        // Check if it's a PHP function first
-        // $php_function = null;
-        // if (!empty($chatbot['php_functions'])) {
-        //     foreach ($chatbot['php_functions'] as $php_func) {
-        //         if ($php_func['name'] === $function_name) {
-        //             $php_function = $php_func;
-        //             break;
-        //         }
-        //     }
-        // }
+      
         
         // Check if it's an external tool
         $external_tool = null;
-        if (!$php_function && !empty($chatbot['tools'])) {
+        if (!empty($chatbot['tools'])) {
             foreach ($chatbot['tools'] as $tool) {
                 if ($tool['name'] === $function_name) {
                     $external_tool = $tool;
@@ -550,41 +511,7 @@ function rapidtextai_handle_tool_calls($tool_calls, $chatbot) {
     return implode("\n\n", $results);
 }
 
-// Execute PHP function
-// function rapidtextai_execute_php_function($php_function, $arguments) {
-//     // Security check - only allow whitelisted functions
-//     // $allowed_functions = apply_filters('rapidtextai_allowed_php_functions', array(
-//     //     'create_ticket',
-//     //     'book_appointment',
-//     //     'get_product_info',
-//     //     'send_email'
-//     // ));
-    
-//     // if (!in_array($php_function['name'], $allowed_functions)) {
-//     //     return 'Function not allowed for security reasons.';
-//     // }
-    
-//     try {
-//         // Execute the PHP code safely
-//         $code = $php_function['code'];
-        
-//         // Create a safe environment
-//         $safe_globals = array(
-//             'arguments' => $arguments,
-//             'wpdb' => $GLOBALS['wpdb'],
-//             'wp_insert_post' => 'wp_insert_post',
-//             'wp_mail' => 'wp_mail'
-//         );
-        
-//         // Use eval with extreme caution - in production, consider a sandboxed environment
-//         $result = eval($code);
-        
-//         return $result ?: 'Function executed successfully.';
-        
-//     } catch (Exception $e) {
-//         return 'Error executing function: ' . $e->getMessage();
-//     }
-// }
+
 
 // write function for rapidtextai_execute_external_tool
 function rapidtextai_execute_external_tool($external_tool, $arguments) {
@@ -690,32 +617,6 @@ function rapidtextai_get_relevant_knowledge($knowledge_base, $query) {
     
     return implode("\n\n", array_slice($relevant_docs, 0, 3)); // Limit to top 3 matches
 }
-
-// Test PHP function
-// function rapidtextai_test_php_function_callback() {
-//     if (!wp_verify_nonce($_POST['nonce'], 'rapidtextai_chatbots_nonce')) {
-//         wp_send_json_error('Nonce verification failed');
-//     }
-    
-//     $code = stripslashes($_POST['code']);
-//     $test_args = json_decode(stripslashes($_POST['test_args']), true);
-    
-//     try {
-//         // Test the function in a safe environment
-//         $arguments = $test_args;
-//         ob_start();
-//         $result = eval($code);
-//         $output = ob_get_clean();
-        
-//         wp_send_json_success(array(
-//             'result' => $result,
-//             'output' => $output
-//         ));
-        
-//     } catch (Exception $e) {
-//         wp_send_json_error('Error: ' . $e->getMessage());
-//     }
-// }
 
 // Shortcode for displaying chatbot
 add_shortcode('rapidtextai_chatbot', 'rapidtextai_chatbot_shortcode');
