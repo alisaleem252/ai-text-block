@@ -161,6 +161,9 @@ function rapidtextai_chatbots_add_edit_page($chatbot_id = 0) {
     }
     // Handle form submission
     if (isset($_POST['submit_chatbot']) && wp_verify_nonce($_POST['rapidtextai_chatbots_nonce'], 'rapidtextai_chatbots_save')) {
+        // echo '<pre>';
+        // print_r($_POST);
+        // echo '</pre>';
         $result = rapidtextai_save_chatbot($_POST, $chatbot_id);
         if ($result) {
             echo '<div class="notice notice-success is-dismissible"><p>Chatbot saved successfully!</p></div>';
@@ -562,29 +565,34 @@ function rapidtextai_execute_external_tool($external_tool, $arguments) {
         
         $response_code = wp_remote_retrieve_response_code($response);
         $response_body = wp_remote_retrieve_body($response);
+        // send the response back to ai and then give user response
         
-        if ($response_code >= 200 && $response_code < 300) {
-            // Try to decode JSON response
-            $decoded_response = json_decode($response_body, true);
-            if (json_last_error() === JSON_ERROR_NONE) {
-                // Return formatted response or specific field if configured
-                if (!empty($external_tool['response_field'])) {
-                    // convert this current.condition.text to ['current']['condition']['text']
-                    $fields = explode('.', $external_tool['response_field']);
-                    $value = $decoded_response;
-                    foreach ($fields as $field) {
-                        if (isset($value[$field])) {
-                            $value = $value[$field];
-                        } else {
-                            $value = null;
-                            break;
-                        }
-                    }
 
-                    return $value ?? $response_body;
-                }
-                return is_array($decoded_response) ? json_encode($decoded_response, JSON_PRETTY_PRINT) : $response_body;
-            }
+        if ($response_code >= 200 && $response_code < 300) {
+            $response_body = rapidtextai_send_response_to_ai($response_body);
+
+            // Try to decode JSON response
+            // $decoded_response = json_decode($response_body, true);
+            // if (json_last_error() === JSON_ERROR_NONE) {
+            //     // Return formatted response or specific field if configured
+            //     if (!empty($external_tool['response_field'])) {
+            //         // convert this current.condition.text to ['current']['condition']['text']
+            //         $fields = explode('.', $external_tool['response_field']);
+            //         $value = $decoded_response;
+            //         foreach ($fields as $field) {
+            //             if (isset($value[$field])) {
+            //                 $value = $value[$field];
+            //             } else {
+            //                 $value = null;
+            //                 break;
+            //             }
+            //         }
+
+            //         return $value ?? $response_body;
+            //     }
+            //     return is_array($decoded_response) ? json_encode($decoded_response, JSON_PRETTY_PRINT) : $response_body;
+            // }
+
             return $response_body;
         } else {
             return "External tool returned error code {$response_code}: {$response_body}";
@@ -593,6 +601,52 @@ function rapidtextai_execute_external_tool($external_tool, $arguments) {
     } catch (Exception $e) {
         return 'Error executing external tool: ' . $e->getMessage();
     }
+}
+// Send response to AI for formatting
+function rapidtextai_send_response_to_ai($response_body) {
+    $api_key = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) {
+        return $response_body; // Return original if no API key
+    }
+    
+    // Build messages for formatting request
+    $messages = array(
+        array(
+            'role' => 'system',
+            'content' => 'You are a helpful assistant that formats API responses to be more readable and user-friendly. Take the raw API response and present it in a clear, concise way that a user would understand. Remove technical jargon and focus on the key information.'
+        ),
+        array(
+            'role' => 'user',
+            'content' => 'Please format this API response in a user-friendly way: ' . $response_body
+        )
+    );
+    
+    // Prepare API request
+    $api_data = array(
+        'model' => 'gpt-3.5-turbo',
+        'messages' => $messages,
+        'max_tokens' => 1000,
+        'temperature' => 0.3
+    );
+    
+    $response = wp_remote_post("https://app.rapidtextai.com/openai/v1/chat/completions?gigsixkey=" . urlencode($api_key), array(
+        'headers' => array('Content-Type' => 'application/json'),
+        'body' => json_encode($api_data),
+        'timeout' => 30
+    ));
+    
+    if (is_wp_error($response)) {
+        return $response_body; // Return original if error
+    }
+    
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+    
+    if (isset($data['choices'][0]['message']['content'])) {
+        return $data['choices'][0]['message']['content'];
+    }
+    
+    return $response_body; // Return original if parsing fails
 }
 
 // Get relevant knowledge from knowledge base

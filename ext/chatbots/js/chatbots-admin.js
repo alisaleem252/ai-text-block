@@ -32,12 +32,20 @@ jQuery(document).ready(function($) {
     
     // Tools functionality
     let toolIndex = $('#tools-container .tool-item').length;
+    // start with 0 if no tools exist
+    if (toolIndex === 0) {
+        toolIndex = 0;
+    } else {
+        toolIndex = Math.max(...$('#tools-container .tool-item').map(function() {
+            return parseInt($(this).data('index'));
+        }).get()) + 1;
+    }
 
     $('#add-tool').on('click', function() {
         const html = `
             <div class="tool-item" data-index="${toolIndex}">
                 <div class="tool-item-header">
-                    <span class="tool-item-title">New Tool</span>
+                    <span class="tool-item-title">${toolIndex} - New Tool</span>
                     <button type="button" class="button test-tool">Test</button>
                     <button type="button" class="button remove-tool">Remove</button>
                 </div>

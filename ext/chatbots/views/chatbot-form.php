@@ -224,10 +224,10 @@ if (!defined('ABSPATH')) exit; // Exit if accessed directly
                 
                 <div id="tools-container">
                     <?php if (!empty($chatbot['tools'])): ?>
-                        <?php foreach ($chatbot['tools'] as $index => $tool): ?>
+                        <?php foreach ($chatbot['tools'] as $index => $tool):  ?>
                             <div class="tool-item" data-index="<?php echo $index; ?>">
                                 <div class="tool-item-header">
-                                    <span class="tool-item-title"><?php echo esc_html($tool['name']); ?></span>
+                                    <span class="tool-item-title"><?php echo $index; ?> - <?php echo esc_html($tool['name']); ?></span>
                                     <button type="button" class="button remove-tool">Remove</button>
                                 </div>
                                 <div class="tool-item-content">
