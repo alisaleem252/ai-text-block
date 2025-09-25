@@ -67,6 +67,9 @@ Create intelligent, customizable AI-powered chat widgets for your website with R
 - Educational content and tutorials
 - Interactive marketing campaigns
 
+**Chatbot Tools Examples & Inspiration**:
+For 23 practical examples of how to implement and use chatbots effectively, visit: [Practical Chatbot Examples](https://blog.alisaleem252.com/2025/09/23-practical-examples-of-chatbot-tools.html)
+
 
 = Usage =
 
@@ -119,6 +122,9 @@ For detailed terms and privacy, visit the following links:
 6. **Screenshot 10** - RapidTextAI Chatbots Frontend
 ![Screenshot 10](screenshot-10.png)
 
+7. **Screenshot 10** - RapidTextAI Chatbots Frontend Tool
+![Screenshot 11](screenshot-11.png)
+
 == Frequently Asked Questions ==
 
 **Q: What are the system requirements for RapidTextAI Blocks?**  
@@ -170,6 +176,9 @@ A: Yes! RapidTextAI offers a Chrome extension for browser-based content generati
 A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
 
 == Changelog ==
+
+= 3.6.1 =
+* Improved Chatbot Responses
 
 = 3.6.0 =
 * Added AI Chatbots feature with customizable chat widgets
