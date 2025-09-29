@@ -658,7 +658,7 @@ function rapidtextai_generate_auto_blog_post() {
         'messages' => [
             [
                 'role' => 'user',
-                'content' => "Write a comprehensive article about: " . $selected_topic
+                'content' => "Write a comprehensive article about: " . $selected_topic . (strpos($settings['model'], 'gpt-5') !== false ? " (Note: Keep the total response under 2500 tokens)" : "")
             ]
         ],
         'chatsession' => rad2deg(time()), // Use current time as session ID
@@ -667,7 +667,7 @@ function rapidtextai_generate_auto_blog_post() {
     // Use max_completion_tokens for gpt-5, max_tokens for other models
     if (strpos($settings['model'], 'gpt-5') !== false) {
         $post_data['max_completion_tokens'] = 4000;
-        $post_data['reasoning_effort'] = 'low';
+        $post_data['reasoning_effort'] = 'minimal';   
     } else {
         $post_data['max_tokens'] = 4000;
         $post_data['temperature'] = 0.7;
@@ -698,6 +698,8 @@ function rapidtextai_generate_auto_blog_post() {
         error_log('RapidTextAI: Invalid response from API');
         return;
     }
+
+    echo '<pre>';print_r($data);echo '</pre>';exit;
     
     // Handle the OpenAI-style response structure to extract post content
     if (!isset($data['choices'][0]['message']['content'])) {
