@@ -187,14 +187,12 @@ if(rapidtextai_is_wp_bakery_active()){
         // Use a regular expression to find all instances of the shortcode
         $pattern = get_shortcode_regex([$shortcode]);
         preg_match_all('/' . $pattern . '/s', $content, $matches);
-    
-        //echo 'matches rapidtextai_ai_text_block <pre>';print_r($matches);echo '</pre>';
+           
         if (isset($matches[0]) && isset($atts['wpb_input_text']) && trim($atts['wpb_input_text']) != '') {
             foreach ($matches[0] as $shortcode_instance) {
 
                 $attribute_pattern = '/' . $attribute_to_update . '=["\'](.*?)["\']/';
                 preg_match($attribute_pattern, $shortcode_instance, $attribute_match);
-                //echo '<pre>';print_r($attribute_match);echo '</pre>';
 
                 // // Check if the attribute was found
                 if (!isset($attribute_match[1])) {
@@ -287,10 +285,6 @@ function rapidtextai_is_elementor_active(){
                 $instance_id = $this->get_id();
 
                 if($jsonelem_arr){
-
-                    
-                   // echo '<pre>';print_r($jsonelem_arr);echo '</pre>';
-
                     $input_text = $settings['input_text'];
                     $input_text_output = $settings['input_text_output'];
                 
@@ -698,8 +692,6 @@ function rapidtextai_generate_auto_blog_post() {
         error_log('RapidTextAI: Invalid response from API');
         return;
     }
-
-    echo '<pre>';print_r($data);echo '</pre>';exit;
     
     // Handle the OpenAI-style response structure to extract post content
     if (!isset($data['choices'][0]['message']['content'])) {
