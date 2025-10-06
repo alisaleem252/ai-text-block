@@ -61,13 +61,14 @@
                             <div class="rapidtextai-form-group">
                                 <label class="rapidtextai-label"><?php esc_html_e('AI Model', 'rapidtextai'); ?></label>
                                 <select name="rapidtextai_model" class="rapidtextai-select">
-                                    <option value="gemini-2.0-flash" <?php selected($settings['model'], 'gemini-2.0-flash'); ?>><?php esc_html_e('Gemini 2.0', 'rapidtextai'); ?></option>
-                                    <option value="gemini-2.5-flash-preview-05-20" <?php selected($settings['model'], 'gemini-2.5-flash-preview-05-20'); ?>><?php esc_html_e('Gemini 2.5', 'rapidtextai'); ?></option>
-                                    <option value="deepseek-chat" <?php selected($settings['model'], 'deepseek-chat'); ?>><?php esc_html_e('DeepSeek 3.1', 'rapidtextai'); ?></option>
-                                    <option value="claude-3-7-sonnet-latest" <?php selected($settings['model'], 'claude-3-7-sonnet-latest'); ?>><?php esc_html_e('Claude 3.7', 'rapidtextai'); ?></option>
-                                    <option value="gpt-5" <?php selected($settings['model'], 'gpt-5'); ?>><?php esc_html_e('GPT-5', 'rapidtextai'); ?></option>
-                                    <option value="gpt-4" <?php selected($settings['model'], 'gpt-4'); ?>><?php esc_html_e('GPT-4', 'rapidtextai'); ?></option>
-                                    <option value="gpt-3.5-turbo" <?php selected($settings['model'], 'gpt-3.5-turbo'); ?>><?php esc_html_e('GPT-3.5 Turbo', 'rapidtextai'); ?></option>
+                                    <option value="gemini-2.0-flash" <?php selected($settings['model'], 'gemini-2.0-flash'); ?>><?php esc_html_e('Gemini 2.0 (Google)', 'rapidtextai'); ?></option>
+                                    <option value="gemini-2.5-flash-preview-05-20" <?php selected($settings['model'], 'gemini-2.5-flash-preview-05-20'); ?>><?php esc_html_e('Gemini 2.5 (Google)', 'rapidtextai'); ?></option>
+                                    <option value="deepseek-chat" <?php selected($settings['model'], 'deepseek-chat'); ?>><?php esc_html_e('DeepSeek 3.1 (DeepSeek)', 'rapidtextai'); ?></option>
+                                    <option value="claude-3-7-sonnet-latest" <?php selected($settings['model'], 'claude-3-7-sonnet-latest'); ?>><?php esc_html_e('Claude 3.7 (Anthropic)', 'rapidtextai'); ?></option>
+                                    <option value="gpt-5" <?php selected($settings['model'], 'gpt-5'); ?>><?php esc_html_e('GPT-5 (OpenAI)', 'rapidtextai'); ?></option>
+                                    <option value="gpt-4" <?php selected($settings['model'], 'gpt-4'); ?>><?php esc_html_e('GPT-4 (OpenAI)', 'rapidtextai'); ?></option>
+                                    <option value="gpt-3.5-turbo" <?php selected($settings['model'], 'gpt-3.5-turbo'); ?>><?php esc_html_e('GPT-3.5 Turbo (OpenAI)', 'rapidtextai'); ?></option>
+                                    <option value="glm-4.5-flash" <?php selected($settings['model'], 'glm-4.5-flash'); ?>><?php esc_html_e('GLM-4.5 Flash (Zhipu AI)', 'rapidtextai'); ?></option>
                                 </select>
                             </div>
 

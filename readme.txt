@@ -33,17 +33,17 @@ With **RapidTextAI**, you can:
 
 
 **Models**:
-
-- GPT 3.5
-- GPT 4
-- GPT 5
-- Gemini 2.0
-- Gemini 2.5
-- Deepseek v 3
-- Deepseek R 3
-- Grok 2
-- Grok 3
-- Claude 3.7
+- GLM 4.5 (ZhipuAI)
+- GPT 3.5 (OpenAI)
+- GPT 4 (OpenAI)
+- GPT 5 (OpenAI)
+- Gemini 2.0 (Google)
+- Gemini 2.5 (Google)
+- Deepseek v 3 (DeepSeek)
+- Deepseek R 3 (DeepSeek)
+- Grok 2 (xAI)
+- Grok 3 (xAI)
+- Claude 3.7 (Anthropic)
 
 **AI Chatbots**:
 Create intelligent, customizable AI-powered chat widgets for your website with RapidTextAI's advanced chatbot system. Build sophisticated conversational experiences that can handle customer support, lead generation, product inquiries, and more.
@@ -189,6 +189,10 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 * Chatbot shortcode support for embedding anywhere on site
 * Advanced chatbot settings including auto-open, positioning, and avatars
 * Comprehensive chatbot management interface with create, edit, delete options
+
+= 3.6.2
+* Added ZhipuAI GLM 4.5
+* Minor Improvements
 
 = 3.5.0 =
 * Streaming Content
