@@ -152,7 +152,7 @@
 
             <div class="rapidtextai-card">
                 <div class="rapidtextai-card-header">
-                    <h2><?php esc_html_e('Account Status', 'rapidtextai'); ?></h2>
+                    <h2><?php esc_html_e('Account Status (Monthly)', 'rapidtextai'); ?></h2>
                 </div>
                 <div class="rapidtextai-card-body">
                     <div id="rapidtextai_status" class="rapidtextai-status-loading">
@@ -479,7 +479,7 @@
                                 output += '<h4 style="color: #1d2327; margin-bottom: 8px;">Basic Plan</h4>';
                                 output += '<div style="font-size: 24px; font-weight: 600; color: #2271b1; margin-bottom: 16px;">$10/month</div>';
                                 output += '<ul style="list-style: none; padding: 0; margin: 0 0 20px 0;">';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> 10,000 Articles/month</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> 1,000 Articles/month</li>';
                                 output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Preferred Article Length</li>';
                                 output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Target Audience</li>';
                                 output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Writing Style</li>';
