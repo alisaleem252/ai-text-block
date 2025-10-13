@@ -910,8 +910,7 @@ function rapidtextai_get_image_for_heading($heading) {
     
     if (!is_wp_error($response) && wp_remote_retrieve_response_code($response) === 200) {
         $body = wp_remote_retrieve_body($response);
-        $data = json_decode($body, true);
-        
+        $data = json_decode($body, true);   
         if (!empty($data['items']) && !empty($data['items'][0])) {
             return array(
                 'link' => $data['items'][0]['link'],
@@ -924,20 +923,22 @@ function rapidtextai_get_image_for_heading($heading) {
     return false;
 }
 
-// ajax callbac thisk for featured image generation based on topic
-add_action('wp_ajax_rapidtextai_get_featured_image', 'rapidtextai_get_featured_image_callback');
-add_action('wp_ajax_nopriv_rapidtextai_get_featured_image', 'rapidtextai_get_featured_image_callback');
+// ajax callback for featured image generation based on topic
+add_action('wp_ajax_rapidtextai_get_featured_image', 'rapidtextai_get_featured_image_for_topic');
+add_action('wp_ajax_nopriv_rapidtextai_get_featured_image', 'rapidtextai_get_featured_image_for_topic');
 
 
 // Function to get featured image for post topic
-function rapidtextai_get_featured_image_for_topic($topic) {
+function rapidtextai_get_featured_image_for_topic($topic) { 
+    $ajax = false;
     // Only verify nonce if topic is not provided as argument (i.e., when called via AJAX)
     if (!$topic) {
-        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rapidtextai_get_featured_image_nonce')) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rapidtextai_nonce')) {
             wp_send_json_error(array('message' => 'Security check failed.'));
             return;
         }
         $topic = isset($_POST['topic']) ? sanitize_text_field($_POST['topic']) : '';
+        $ajax = true;
     }
     
     $api_key = get_option('rapidtextai_api_key', '');
@@ -950,11 +951,154 @@ function rapidtextai_get_featured_image_for_topic($topic) {
     if (!$search_query) {
         return false;
     }
-    
     // Use the existing function to get image
-    return rapidtextai_get_image_for_heading($search_query);
+    $image_data = rapidtextai_get_image_for_heading($search_query);
+    
+    if ($ajax) {
+        if ($image_data) {
+            wp_send_json_success($image_data);
+        } else {
+            wp_send_json_error(array('message' => 'No image found for this topic.'));
+        }
+        return;
+    }
+    
+    return $image_data;
 }
+// AJAX handler for uploading image from URL
+add_action('wp_ajax_rapidtextai_upload_image_from_url', 'rapidtextai_upload_image_from_url_callback');
+add_action('wp_ajax_nopriv_rapidtextai_upload_image_from_url', 'rapidtextai_upload_image_from_url_callback');
 
+function rapidtextai_upload_image_from_url_callback() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rapidtextai_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'));
+        return;
+    }
+
+    // Check user permissions
+    if (!current_user_can('upload_files')) {
+        wp_send_json_error(array('message' => 'Permission denied.'));
+        return;
+    }
+
+    // Validate and sanitize URL
+    $image_url = isset($_POST['image_url']) ? esc_url_raw($_POST['image_url']) : '';
+    if (empty($image_url) || !filter_var($image_url, FILTER_VALIDATE_URL)) {
+        wp_send_json_error(array('message' => 'Invalid image URL provided.'));
+        return;
+    }
+
+    // Optional: Get post ID if provided
+    $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
+
+    // Get image filename or generate one
+    $filename = isset($_POST['filename']) ? sanitize_file_name($_POST['filename']) : '';
+    if (empty($filename)) {
+        $filename = basename(parse_url($image_url, PHP_URL_PATH));
+        if (empty($filename)) {
+            $filename = 'rapidtextai-image-' . time();
+        }
+    }
+
+    // Download the image
+    $response = wp_remote_get($image_url, array(
+        'timeout' => 30,
+        'user-agent' => 'WordPress/' . get_bloginfo('version') . '; ' . get_bloginfo('url')
+    ));
+
+    if (is_wp_error($response)) {
+        wp_send_json_error(array('message' => 'Failed to download image: ' . $response->get_error_message()));
+        return;
+    }
+
+    // Check response code
+    if (wp_remote_retrieve_response_code($response) !== 200) {
+        wp_send_json_error(array('message' => 'Failed to download image. HTTP status: ' . wp_remote_retrieve_response_code($response)));
+        return;
+    }
+
+    // Get image data and content type
+    $image_data = wp_remote_retrieve_body($response);
+    $content_type = wp_remote_retrieve_header($response, 'content-type');
+    
+    // Validate that it's actually an image
+    if (strpos($content_type, 'image/') !== 0) {
+        wp_send_json_error(array('message' => 'URL does not point to a valid image.'));
+        return;
+    }
+
+    // Determine file extension from content type
+    $extension = '';
+    switch ($content_type) {
+        case 'image/jpeg':
+        case 'image/jpg':
+            $extension = 'jpg';
+            break;
+        case 'image/png':
+            $extension = 'png';
+            break;
+        case 'image/gif':
+            $extension = 'gif';
+            break;
+        case 'image/webp':
+            $extension = 'webp';
+            break;
+        default:
+            // Try to get extension from URL
+            $path_info = pathinfo(parse_url($image_url, PHP_URL_PATH));
+            $extension = isset($path_info['extension']) ? $path_info['extension'] : 'jpg';
+    }
+
+    // Ensure filename has proper extension
+    if (!preg_match('/\.' . $extension . '$/i', $filename)) {
+        $filename = pathinfo($filename, PATHINFO_FILENAME) . '.' . $extension;
+    }
+
+    // Upload the file to WordPress media library
+    $upload = wp_upload_bits($filename, null, $image_data);
+
+    if ($upload['error']) {
+        wp_send_json_error(array('message' => 'Failed to upload image: ' . $upload['error']));
+        return;
+    }
+
+    // Get file type
+    $wp_filetype = wp_check_filetype($upload['file']);
+
+    // Prepare attachment data
+    $attachment = array(
+        'post_mime_type' => $wp_filetype['type'],
+        'post_title' => sanitize_text_field(pathinfo($filename, PATHINFO_FILENAME)),
+        'post_content' => '',
+        'post_status' => 'inherit'
+    );
+
+    // Insert attachment
+    $attach_id = wp_insert_attachment($attachment, $upload['file'], $post_id);
+
+    if (is_wp_error($attach_id)) {
+        wp_send_json_error(array('message' => 'Failed to create attachment: ' . $attach_id->get_error_message()));
+        return;
+    }
+
+    // Generate attachment metadata
+    require_once(ABSPATH . 'wp-admin/includes/image.php');
+    $attach_data = wp_generate_attachment_metadata($attach_id, $upload['file']);
+    wp_update_attachment_metadata($attach_id, $attach_data);
+
+    // Get attachment URL
+    $attachment_url = wp_get_attachment_url($attach_id);
+
+    // Return success response
+    wp_send_json_success(array(
+        'message' => 'Image uploaded successfully.',
+        'attachment_id' => $attach_id,
+        'attachment_url' => $attachment_url,
+        'attachment_title' => get_the_title($attach_id),
+        'file_path' => $upload['file']
+    ));
+}
 // Function to generate search query for featured image using AI
 function rapidtextai_generate_search_query_for_featured($topic) {
     $api_key = get_option('rapidtextai_api_key', '');

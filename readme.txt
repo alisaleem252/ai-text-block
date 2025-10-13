@@ -33,7 +33,6 @@ With **RapidTextAI**, you can:
 
 
 **Models**:
-- GLM 4.5 (ZhipuAI)
 - GPT 3.5 (OpenAI)
 - GPT 4 (OpenAI)
 - GPT 5 (OpenAI)
@@ -41,6 +40,7 @@ With **RapidTextAI**, you can:
 - Gemini 2.5 (Google)
 - Deepseek v 3 (DeepSeek)
 - Deepseek R 3 (DeepSeek)
+- GLM 4.5 (ZhipuAI)
 - Grok 2 (xAI)
 - Grok 3 (xAI)
 - Claude 3.7 (Anthropic)
@@ -202,12 +202,19 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 
 == Changelog ==
 
-= 3.6.3 =
+= 3.6.4 =
+* Added Featured Image Support Gutenberg Editor as well
 
+= 3.6.3 =
 * Added Featured Image Support for auto blogging
 
 = 3.6.1 =
 * Improved Chatbot Responses
+
+= 3.6.2
+* Added ZhipuAI GLM 4.5
+* Minor Improvements
+
 
 = 3.6.0 =
 * Added AI Chatbots feature with customizable chat widgets
@@ -219,9 +226,6 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 * Advanced chatbot settings including auto-open, positioning, and avatars
 * Comprehensive chatbot management interface with create, edit, delete options
 
-= 3.6.2
-* Added ZhipuAI GLM 4.5
-* Minor Improvements
 
 = 3.5.0 =
 * Streaming Content
@@ -253,7 +257,7 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 * Major update with advanced AI article generation capabilities
 * Added support for multiple AI models: GPT-4, Gemini 2, DeepSeek, and Grok
 * Integrated automatic image generation and insertion with articles
-* New AI-powered metadata generator for tags, categories, and excerpts
+* New AI-powered metadata generator for tags, categories, excerpts and Featured Image
 * Enhanced article structure with customizable headings and sections
 * Improved user interface for better content generation workflow
 * Added bulk article generation capability

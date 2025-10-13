@@ -158,6 +158,9 @@ function rapidtextai_metabox_enqueue_scripts( $hook ) {
     if (post_type_supports(get_post_type(), 'post_tag') || post_type_supports(get_post_type(), 'category') || get_post_type() == 'post') {        
         wp_enqueue_script('rapidtextai_script-tags-js',  plugin_dir_url( __FILE__ ) . 'assets/js/tags.js', array('wp-element'), wp_rand(), true);
     }
+    if (post_type_supports(get_post_type(), 'thumbnail')) {
+        wp_enqueue_script('rapidtextai_script-featured-js', plugin_dir_url( __FILE__ ) . 'assets/js/featured.js', array('wp-element'), wp_rand(), true);
+    }
 
     // Localize script to pass data
     wp_localize_script( 'rapidtextai_script', 'rapidtextai_ajax', array(
