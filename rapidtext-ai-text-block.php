@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 3.6.2
+* Version: 3.6.3
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -452,6 +452,7 @@ function rapidtextai_auto_blogging_page() {
             'excerpt_length' => intval($_POST['rapidtextai_excerpt_length']),
             'taxonomy_limit' => intval($_POST['rapidtextai_taxonomy_limit']),
             'include_images' => isset($_POST['rapidtextai_include_images']) ? 1 : 0,
+            'include_featured_image' => isset($_POST['rapidtextai_include_featured_image']) ? 1 : 0,
             'max_images' => intval($_POST['rapidtextai_max_images']),
         );
         
@@ -621,7 +622,6 @@ add_action('rapidtextai_auto_blogging_cron', 'rapidtextai_generate_auto_blog_pos
 function rapidtextai_generate_auto_blog_post() {
     // Get settings
     $settings = get_option('rapidtextai_auto_blogging', array());
-    
     // Check if auto blogging is enabled
     if (empty($settings) || empty($settings['enabled'])) {
         return;
@@ -824,6 +824,67 @@ function rapidtextai_generate_auto_blog_post() {
     
     $post_id = wp_insert_post($post_data);
     
+    // Set featured image if enabled
+    if (isset($settings['include_featured_image']) && $settings['include_featured_image']) {
+        $featured_image_data = rapidtextai_get_featured_image_for_topic($selected_topic);
+        
+        if ($featured_image_data && !empty($featured_image_data['link'])) {
+            // Download and upload the image
+            $image_url = $featured_image_data['link'];
+            $image_response = wp_remote_get($image_url, array(
+                'timeout' => 30,
+                'user-agent' => 'WordPress/' . get_bloginfo('version') . '; ' . get_bloginfo('url')
+            ));
+            
+            if (!is_wp_error($image_response) && wp_remote_retrieve_response_code($image_response) === 200) {
+                $image_data = wp_remote_retrieve_body($image_response);
+                $image_type = wp_remote_retrieve_header($image_response, 'content-type');
+                
+                // Get file extension based on content type
+                $extension = 'jpg';
+                if (strpos($image_type, 'png') !== false) {
+                    $extension = 'png';
+                } elseif (strpos($image_type, 'gif') !== false) {
+                    $extension = 'gif';
+                } elseif (strpos($image_type, 'webp') !== false) {
+                    $extension = 'webp';
+                }
+                
+                // Create a safe filename
+                $filename = sanitize_file_name(substr($generated_post['title'], 0, 50)) . '.' . $extension;
+                
+                // Upload the file
+                $upload = wp_upload_bits($filename, null, $image_data);
+                
+                if (!$upload['error']) {
+                    $wp_filetype = wp_check_filetype($upload['file']);
+                    $attachment = array(
+                        'post_mime_type' => $wp_filetype['type'],
+                        'post_title' => sanitize_text_field($generated_post['title']),
+                        'post_content' => '',
+                        'post_status' => 'inherit'
+                    );
+                    
+                    $attach_id = wp_insert_attachment($attachment, $upload['file'], $post_id);                   
+                    if (!is_wp_error($attach_id)) {
+                        require_once(ABSPATH . 'wp-admin/includes/image.php');
+                        $attach_data = wp_generate_attachment_metadata($attach_id, $upload['file']);
+                        wp_update_attachment_metadata($attach_id, $attach_data);
+                        
+                        // Set as featured image
+                        set_post_thumbnail($post_id, $attach_id);
+                        
+                        error_log('RapidTextAI: Featured image set for post ID ' . $post_id);
+                    }
+                } else {
+                    error_log('RapidTextAI: Failed to upload featured image: ' . $upload['error']);
+                }
+            } else {
+                error_log('RapidTextAI: Failed to download featured image from URL: ' . $image_url);
+            }
+        }
+    }
+    
     if (!is_wp_error($post_id)) {
         // Add taxonomy terms
         if ($settings['generate_tags'] && !empty($generated_post['taxonomies']['post_tag'])) {
@@ -861,6 +922,98 @@ function rapidtextai_get_image_for_heading($heading) {
     }
     
     return false;
+}
+
+// ajax callbac thisk for featured image generation based on topic
+add_action('wp_ajax_rapidtextai_get_featured_image', 'rapidtextai_get_featured_image_callback');
+add_action('wp_ajax_nopriv_rapidtextai_get_featured_image', 'rapidtextai_get_featured_image_callback');
+
+
+// Function to get featured image for post topic
+function rapidtextai_get_featured_image_for_topic($topic) {
+    // Only verify nonce if topic is not provided as argument (i.e., when called via AJAX)
+    if (!$topic) {
+        if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rapidtextai_get_featured_image_nonce')) {
+            wp_send_json_error(array('message' => 'Security check failed.'));
+            return;
+        }
+        $topic = isset($_POST['topic']) ? sanitize_text_field($_POST['topic']) : '';
+    }
+    
+    $api_key = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) {
+        return false;
+    }
+    
+    // Generate search query using AI
+    $search_query = rapidtextai_generate_search_query_for_featured($topic);
+    if (!$search_query) {
+        return false;
+    }
+    
+    // Use the existing function to get image
+    return rapidtextai_get_image_for_heading($search_query);
+}
+
+// Function to generate search query for featured image using AI
+function rapidtextai_generate_search_query_for_featured($topic) {
+    $api_key = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) {
+        return false;
+    }
+    
+    // Create prompt for generating search query
+    $prompt = "Based on this blog post topic, generate a short and specific search query (2-4 words) that would find the best featured image for this article. Focus on the main concept or subject matter.\n\nTopic: " . $topic . "\n\nReturn only the search query, nothing else.";
+    
+    // Set up request data
+    $request_data = array(
+        'model' => 'gpt-3.5-turbo',
+        'messages' => [
+            [
+                'role' => 'system',
+                'content' => 'You are a helpful assistant that generates concise image search queries. Return only the search terms, no explanations.'
+            ],
+            [
+                'role' => 'user',
+                'content' => $prompt
+            ]
+        ],
+        'max_tokens' => 20,
+        'temperature' => 0.3
+    );
+    
+    // API endpoint
+    $api_url = "https://app.rapidtextai.com/openai/v1/chat/completions?gigsixkey=" . urlencode($api_key);
+    
+    // Make API request
+    $response = wp_remote_post($api_url, array(
+        'body' => json_encode($request_data),
+        'headers' => array(
+            'Content-Type' => 'application/json',
+        ),
+        'timeout' => 30,
+    ));
+    
+    if (is_wp_error($response)) {
+        error_log('RapidTextAI: Failed to generate search query: ' . $response->get_error_message());
+        return false;
+    }
+    
+    $body = wp_remote_retrieve_body($response);
+    $data = json_decode($body, true);
+    
+    if (!isset($data['choices'][0]['message']['content'])) {
+        error_log('RapidTextAI: Invalid response when generating search query');
+        return false;
+    }
+    
+    $search_query = trim($data['choices'][0]['message']['content']);
+    
+    // Clean up the search query (remove quotes, extra punctuation)
+    $search_query = preg_replace('/["\']/', '', $search_query);
+    $search_query = preg_replace('/[^\w\s-]/', '', $search_query);
+    
+    return $search_query;
 }
 
 // Add a dashboard widget to show auto blogging status

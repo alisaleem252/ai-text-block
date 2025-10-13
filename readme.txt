@@ -76,7 +76,32 @@ For 23 practical examples of how to implement and use chatbots effectively, visi
 Full Demo & Tutorial
 [youtube https://www.youtube.com/watch?v=g7tuYLgH5U8]
 
+= Free vs Premium Plans =
 
+**Free Account**:
+- Generate up to **10 articles** per month
+- Access to all AI models (GPT-3.5, GPT-4, GPT-5, Claude 3.7, Gemini 2.0/2.5, DeepSeek v3/R3, Grok 2/3)
+- Basic chatbot functionality
+- Standard article generation features
+- Automatic image integration
+- Perfect for testing and small websites
+
+**Premium Account ($10/month)**:
+- Generate up to **1,000 articles** per month
+- All Free features included
+- Priority generation speed
+- Advanced Auto Blogging capabilities
+- Unlimited chatbot conversations
+- Priority customer support
+- Enhanced customization options
+- Bulk article generation
+
+**Premium Account ($30/month)**:
+- Generate up to **5,000 articles** per month
+
+**Important**: All article credits reset monthly on your account anniversary date. Whether you're on Free or Premium, your usage counter resets every month from the date you first joined RapidTextAI.
+
+To upgrade or check your current plan, visit your [RapidTextAI Dashboard](https://app.rapidtextai.com/).
 
 For detailed terms and privacy, visit the following links:
 - [RapidTextAI Terms of Service](https://app.rapidtextai.com/terms)
@@ -176,6 +201,10 @@ A: Yes! RapidTextAI offers a Chrome extension for browser-based content generati
 A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
 
 == Changelog ==
+
+= 3.6.3 =
+
+* Added Featured Image Support for auto blogging
 
 = 3.6.1 =
 * Improved Chatbot Responses

@@ -172,6 +172,15 @@
                                         </label>
                                         <p class="rapidtextai-field-description"><?php esc_html_e('Add relevant images to generated posts', 'rapidtextai'); ?></p>
                                     </div>
+                                    <!-- Featured Image -->
+                                    <div class="rapidtextai-form-group">
+                                        <label class="rapidtextai-toggle">
+                                            <input type="checkbox" name="rapidtextai_include_featured_image" value="1" <?php checked($settings['include_featured_image']); ?>>
+                                            <span class="rapidtextai-toggle-slider"></span>
+                                            <span class="rapidtextai-toggle-label"><?php esc_html_e('Set Featured Image', 'rapidtextai'); ?></span>
+                                        </label>
+                                        <p class="rapidtextai-field-description"><?php esc_html_e('Automatically set a featured image for generated posts', 'rapidtextai'); ?></p>
+                                    </div>
                                     <!-- maximum number of images -->
                                     <div class="rapidtextai-form-group">
                                         <label class="rapidtextai-label"><?php esc_html_e('Maximum Images', 'rapidtextai'); ?></label>
