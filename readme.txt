@@ -202,6 +202,9 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 
 == Changelog ==
 
+= 3.6.5 =
+* Added Grok 3 for Auto Blogging
+
 = 3.6.4 =
 * Added Featured Image Support Gutenberg Editor as well
 
