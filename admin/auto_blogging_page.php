@@ -93,8 +93,8 @@
                             <div class="rapidtextai-field-help">
                                 <div class="rapidtextai-help-content">
                                     <h4><?php esc_html_e('Advanced Format:', 'rapidtextai'); ?></h4>
-                                    <p><code>Topic: [topic]; Keywords: [keywords]; Tone: [tone]; Audience: [audience]; CTA: [call to action]</code></p>
-                                    <p><strong><?php esc_html_e('Example:', 'rapidtextai'); ?></strong> <em>Topic: Complete Guide to Sustainable Gardening for Beginners; Keywords: sustainable gardening, eco-friendly plants, organic fertilizer, water conservation, composting methods; Tone: friendly and informative; Audience: homeowners and gardening beginners; Length: 2500-3000 words; CTA: Download our free sustainable gardening checklist</em></p>
+                                    <p><code>Topic: [topic]; Keywords: [keywords]; Tone: [tone]; Audience: [audience]; CTA: [call to action]; Length: [length] : Language: [language]</code></p>
+                                    <p><strong><?php esc_html_e('Example:', 'rapidtextai'); ?></strong> <em>Topic: Complete Guide to Sustainable Gardening for Beginners; Keywords: sustainable gardening, eco-friendly plants, organic fertilizer, water conservation, composting methods; Tone: friendly and informative; Audience: homeowners and gardening beginners; Length: 2500-3000 words; CTA: Download our free sustainable gardening checklist; Language: English</em></p>
                                 </div>
                                 <div class="rapidtextai-topic-actions">
                                     <button type="button" id="rapidtextai_improve_topics" class="rapidtextai-btn rapidtextai-btn-secondary">
@@ -189,6 +189,15 @@
                                                min="1" max="10" class="rapidtextai-input">
                                         <p class="rapidtextai-field-description"><?php esc_html_e('Maximum number of images to include per post', 'rapidtextai'); ?></p>
                                     </div>
+                                    <!-- enable logging  -->
+                                    <div class="rapidtextai-form-group">
+                                        <label class="rapidtextai-toggle">
+                                            <input type="checkbox" name="rapidtextai_enable_logging" value="1" <?php checked($settings['enable_logging']); ?>>
+                                            <span class="rapidtextai-toggle-slider"></span>
+                                            <span class="rapidtextai-toggle-label"><?php esc_html_e('Enable Logging', 'rapidtextai'); ?></span>
+                                        </label>
+                                        <p class="rapidtextai-field-description"><?php esc_html_e('Keep a log of all auto blogging activities', 'rapidtextai'); ?></p>
+                                    </div>
                                 </div>
                             </div>
                         </div>
@@ -228,6 +237,7 @@
                     </div>
                 </div>
             </div>
+            <?php if ($settings['enable_logging']) : ?>
             <!-- Logs Card -->
             <div class="rapidtextai-card">
                 <div class="rapidtextai-card-header">
@@ -257,6 +267,7 @@
                     </div>
                 </div>
             </div>
+            <?php endif; ?>
 
                                                 
                                                 

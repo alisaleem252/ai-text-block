@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 3.6.5
+* Version: 3.7.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -12,6 +12,7 @@ if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly
 define('RAPIDTEXTAI_PLUGIN_DIR', plugin_dir_path( __FILE__ ));
 define('RAPIDTEXTAI_PLUGIN_URL', plugin_dir_url( __FILE__ ));
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-meta-box.php';
+require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-check.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-openaihandler.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/chatbots/chatbots.php';
 
@@ -454,6 +455,7 @@ function rapidtextai_auto_blogging_page() {
             'include_images' => isset($_POST['rapidtextai_include_images']) ? 1 : 0,
             'include_featured_image' => isset($_POST['rapidtextai_include_featured_image']) ? 1 : 0,
             'max_images' => intval($_POST['rapidtextai_max_images']),
+            'enable_logging' => isset($_POST['rapidtextai_enable_logging']) ? 1 : 0,
         );
         
         update_option('rapidtextai_auto_blogging', $settings);
@@ -554,7 +556,8 @@ function rapidtextai_improve_topics_callback() {
     $prompt = "I have a list of blog post topics that need improvement to make them more specific, engaging, and SEO-friendly. Please improve each of these topics, topic keywords should be set one per line:\n\n";
     $prompt .= implode("\n", $topics_array);
     $prompt .= "\n\nFor each topic:\n1. Make it more specific\n2. Add relevant keywords\n3. Make it more engaging\n4. Format as a headline\n5. Return one improved version per topic, group each topic specific keywords headline in a single line\n\n 
-    example response Example: Topic: Complete Guide to Sustainable Gardening for Beginners; Keywords: sustainable gardening, eco-friendly plants, organic fertilizer, water conservation, composting methods; Tone: friendly and informative; Audience: homeowners and gardening beginners; Length: 2500-3000 words; CTA: Download our free sustainable gardening checklist";
+    \n\nUse same language as the input topics
+    \n\nexample response Example: Topic: Complete Guide to Sustainable Gardening for Beginners; Keywords: sustainable gardening, eco-friendly plants, organic fertilizer, water conservation, composting methods; Tone: friendly and informative; Audience: homeowners and gardening beginners; Length: 2500-3000 words; CTA: Download our free sustainable gardening checklist";
     
     // Call RapidTextAI API using the chat completions endpoint
     $chat_endpoint = 'https://app.rapidtextai.com/openai/v1/chat/completions?gigsixkey=' . $api_key;
@@ -615,16 +618,191 @@ function rapidtextai_improve_topics_callback() {
 }
 
 
-// Schedule the cron job
+// Schedule the cron job - Main entry point
 add_action('rapidtextai_auto_blogging_cron', 'rapidtextai_generate_auto_blog_post');
 
-// Function to generate blog post
+// Additional cron hooks for the new workflow
+add_action('rapidtextai_generate_title', 'rapidtextai_generate_title_handler', 10, 1);
+add_action('rapidtextai_create_post', 'rapidtextai_create_post_handler', 10, 1);
+add_action('rapidtextai_finalize_post', 'rapidtextai_finalize_post_handler', 10, 1);
+
+/**
+ * Streaming Logic Implementation:
+ * 
+ * This implementation uses a multi-stage approach with transient storage:
+ * 
+ * Stage 1: rapidtextai_generate_auto_blog_post()
+ *   - Streams content from completionsarticle-stream endpoint
+ *   - Saves raw content to WordPress transient (1 hour expiry)
+ *   - Schedules title generation job
+ * 
+ * Stage 2: rapidtextai_generate_title_handler()
+ *   - Retrieves content from transient
+ *   - Uses completion API to generate SEO-optimized title
+ *   - Updates transient with generated title
+ *   - Schedules post creation job
+ * 
+ * Stage 3: rapidtextai_create_post_handler()
+ *   - Retrieves title + content from transient
+ *   - Converts markdown to HTML
+ *   - Creates WordPress post with title and content
+ *   - Deletes transient (no longer needed)
+ *   - Schedules finalization job
+ * 
+ * Stage 4: rapidtextai_finalize_post_handler()
+ *   - Generates tags using completion API (if enabled)
+ *   - Adds images to content (if enabled)
+ *   - Sets featured image (if enabled)
+ *   - Updates post status to publish/draft
+ *   - Cleanup metadata
+ * 
+ * Benefits of this approach:
+ *   - Content streaming prevents timeout on long articles
+ *   - Transient storage is cleaner than post meta for temporary data
+ *   - Title generation uses AI with article context (better SEO)
+ *   - No draft post created until title is ready
+ *   - Each stage is independent and can be retried
+ *   - 1-hour transient expiry prevents data buildup
+ */
+
+/**
+ * Stream content from API using Server-Sent Events (SSE)
+ * 
+ * SSE Format Example:
+ * data: {"id":"123","object":"chat.completion.chunk","choices":[{"delta":{"content":"Hello"}}]}
+ * 
+ * data: {"id":"123","object":"chat.completion.chunk","choices":[{"delta":{"content":" world"}}]}
+ * 
+ * data: [DONE]
+ */
+function rapidtextai_stream_content_via_sse($api_url, $post_data) {
+    $accumulated_content = '';
+    $buffer = '';
+    $chunk_count = 0;
+    $settings = get_option('rapidtextai_auto_blogging', array());
+    if (!empty($settings['enable_logging'])) {
+        error_log('RapidTextAI: Stream: Starting SSE stream');
+    }
+
+    // Initialize cURL for streaming
+    $ch = curl_init($api_url);
+    curl_setopt_array($ch, array(
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => json_encode($post_data),
+        CURLOPT_HTTPHEADER => array(
+            'Content-Type: application/json',
+            'Accept: text/event-stream',
+        ),
+        CURLOPT_RETURNTRANSFER => false,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
+        CURLOPT_TIMEOUT => 300, // 5 minutes max
+        CURLOPT_CONNECTTIMEOUT => 30,
+        CURLOPT_BUFFERSIZE => 128, // Small buffer for real-time processing
+        CURLOPT_WRITEFUNCTION => function($curl, $data) use (&$accumulated_content, &$buffer, &$chunk_count) {
+            $buffer .= $data;
+            
+            // Process complete SSE events (separated by \n\n)
+            while (($double_newline_pos = strpos($buffer, "\n\n")) !== false) {
+                $event_block = substr($buffer, 0, $double_newline_pos);
+                $buffer = substr($buffer, $double_newline_pos + 2);
+                
+                // Parse the event block
+                $lines = explode("\n", $event_block);
+                foreach ($lines as $line) {
+                    // SSE format: "data: {json}"
+                    if (strpos($line, 'data: ') === 0) {
+                        $json_data = trim(substr($line, 6));
+                        
+                        // Check for stream end signal
+                        if ($json_data === '[DONE]') {
+                            if(!empty($settings['enable_logging']))
+                            error_log('RapidTextAI: Stream: Received [DONE] signal');
+
+                            continue;
+                        }
+                        
+                        // Decode JSON chunk
+                        $chunk = json_decode($json_data, true);
+                        
+                        // Check for JSON decode errors
+                        if (json_last_error() !== JSON_ERROR_NONE) {
+                            if(!empty($settings['enable_logging']))
+                            error_log('RapidTextAI: Stream: JSON decode error: ' . json_last_error_msg() . ' - Data: ' . substr($json_data, 0, 200));
+                            continue;
+                        }
+                        
+                        
+                        // Extract content from delta (OpenAI streaming format)
+                        if (isset($chunk['choices'][0]['delta']['content'])) {
+                            $content_piece = $chunk['choices'][0]['delta']['content'];
+                            $accumulated_content .= $content_piece;
+                            $chunk_count++;
+                            
+                            // Log progress every 50 chunks
+                            if ($chunk_count % 50 === 0 && !empty($settings['enable_logging'])) {
+                                error_log("RapidTextAI Stream: Processed {$chunk_count} chunks, " . strlen($accumulated_content) . " chars");
+                            }
+                        } else {
+                            // Log when expected structure is not found
+                            if ($chunk_count < 5 && !empty($settings['enable_logging'])) { // Only log first few to avoid spam
+                                error_log('RapidTextAI: Stream: Chunk missing delta.content - Structure: ' . json_encode($chunk));
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return strlen($data);
+        }
+    ));
+    
+    // Execute the streaming request
+    $result = curl_exec($ch);
+    $http_code = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    $curl_error = curl_error($ch);
+    curl_close($ch);
+    
+    // Validate results
+    if ($result === false || !empty($curl_error)) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stream: cURL error - ' . $curl_error);
+        return false;
+    }
+    
+    if ($http_code !== 200) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stream: HTTP error code ' . $http_code);
+        return false;
+    }
+    
+    if (empty($accumulated_content)) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stream: No content received from stream. Chunks processed: ' . $chunk_count . ', Buffer remaining: ' . strlen($buffer));
+        return false;
+    }
+    if(!empty($settings['enable_logging']))
+    error_log("RapidTextAI Stream: SUCCESS! Received {$chunk_count} chunks, total " . strlen($accumulated_content) . " characters");
+    
+    return $accumulated_content;
+}
+
+// Stage 1: Stream article content and save to transient
 function rapidtextai_generate_auto_blog_post() {
     // Get settings
     $settings = get_option('rapidtextai_auto_blogging', array());
+    
     // Check if auto blogging is enabled
     if (empty($settings) || empty($settings['enabled'])) {
         return;
+    }
+    // Check user limits before proceeding
+    // Check user limits before proceeding
+    $user_limits_check = rapidtextai_check_user_limits();
+    if (!$user_limits_check) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: User limits exceeded, auto blogging skipped.');
+        return false;
     }
     
     // Get a random topic
@@ -633,6 +811,7 @@ function rapidtextai_generate_auto_blog_post() {
     $topics = array_filter($topics);
     
     if (empty($topics)) {
+        if(!empty($settings['enable_logging']))
         error_log('RapidTextAI: No topics available for auto blogging.');
         return;
     }
@@ -642,149 +821,301 @@ function rapidtextai_generate_auto_blog_post() {
     // Get API key
     $api_key = get_option('rapidtextai_api_key', '');
     if (empty($api_key)) {
+        if(!empty($settings['enable_logging']))
         error_log('RapidTextAI: API key not found. Please set up your authentication.');
         return;
     }
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 1: Starting content streaming for topic: ' . $selected_topic);
     
-    // Set up post data for the completionarticle endpoint
+    // Set up post data for streaming endpoint
     $post_data = array(
         'model' => $settings['model'],
-        'messages' => [
-            [
+        'messages' => array(
+            array(
                 'role' => 'user',
-                'content' => "Write a comprehensive article about: " . $selected_topic . (strpos($settings['model'], 'gpt-5') !== false ? " (Note: Keep the total response under 2500 tokens)" : "")
-            ]
-        ],
-        'chatsession' => rad2deg(time()), // Use current time as session ID
+                'content' => "Write a comprehensive article about: " . $selected_topic. "\n\nThe tone should be " . $settings['tone'] . "."
+            )
+        ),
+        'chatsession' => 'rapidtextai__'.$settings['model'].'_' . time() . '_' . wp_rand(),
+        'stream' => true,
     );
     
     // Use max_completion_tokens for gpt-5, max_tokens for other models
     if (strpos($settings['model'], 'gpt-5') !== false) {
         $post_data['max_completion_tokens'] = 4000;
-        $post_data['reasoning_effort'] = 'minimal';   
+        $post_data['reasoning_effort'] = 'minimal';
     } else {
-        $post_data['max_tokens'] = 4000;
+        // $user_limits_check
+        $post_data['max_tokens'] = $user_limits_check['response_code'] == 1 ? null : 4000;
         $post_data['temperature'] = 0.7;
     }
+    
+    // Streaming API endpoint
+    $api_url = "https://app.rapidtextai.com/openai/v1/chat/completionsarticle-stream?gigsixkey=" . urlencode($api_key);
+    
+    // Stream the content
+    $content = rapidtextai_stream_content_via_sse($api_url, $post_data);
+    
+    if ($content === false) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stage 1: Streaming failed for topic: ' . $selected_topic);
+        return;
+    }
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 1: Successfully streamed ' . strlen($content) . ' characters');
+    
+    // Generate unique transient key
+    $transient_key = 'rapidtextai_content_' . md5($selected_topic . time());
+    
+    // Save content to transient (expires in 1 hour)
+    set_transient($transient_key, array(
+        'content' => $content,
+        'topic' => $selected_topic,
+        'settings' => $settings,
+        'created' => current_time('mysql'),
+    ), HOUR_IN_SECONDS);
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 1: Content saved to transient: ' . $transient_key);
+    
+    // Schedule Stage 2: Generate title (run immediately as single event)
+    wp_schedule_single_event(time() + 2, 'rapidtextai_generate_title', array($transient_key));
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 1: Scheduled title generation job');
+}
 
-    // API endpoint with API key
-    $api_url = "https://app.rapidtextai.com/openai/v1/chat/completionsarticle?gigsixkey=" . urlencode($api_key);
+// Stage 2: Generate title using completion API
+function rapidtextai_generate_title_handler($transient_key) {
+    $settings = get_option('rapidtextai_auto_blogging', array());
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 2: Generating title from transient: ' . $transient_key);
     
-    // Make the API request
-    $response = wp_remote_post($api_url, array(
-        'body' => json_encode($post_data),
-        'headers' => array(
-            'Content-Type' => 'application/json',
+    // Get content from transient
+    $data = get_transient($transient_key);
+    
+    if ($data === false || empty($data['content'])) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stage 2: Transient data not found or empty: ' . $transient_key);
+        return;
+    }
+    
+    $content = $data['content'];
+    $topic = $data['topic'];
+    $settings = $data['settings'];
+    
+    // Get API key
+    $api_key = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stage 2: API key not found');
+        delete_transient($transient_key);
+        return;
+    }
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 2: Requesting title generation for content (' . strlen($content) . ' chars)');
+    
+    // Use completion API to generate title
+    $title_data = array(
+        'model' => 'gpt-3.5-turbo',
+        'messages' => array(
+            array(
+                'role' => 'system',
+                'content' => 'You are a title generator. Generate only an SEO-optimized, engaging title for the article in language same as content language. Return ONLY the title, nothing else.'
+            ),
+            array(
+                'role' => 'user',
+                'content' => "Generate a compelling title for this article in language same as content language:\n\n" . substr($content, 0, 1000)
+            )
         ),
-        'timeout' => 120,
-    ));
-    if (is_wp_error($response)) {
-        error_log('RapidTextAI: Failed to connect to API: ' . $response->get_error_message());
-        return;
-    }
-    
-    // Parse the response
-    $body = wp_remote_retrieve_body($response);
-    $data = json_decode($body, true);
-    
-    if (json_last_error() !== JSON_ERROR_NONE || empty($data)) {
-        error_log('RapidTextAI: Invalid response from API');
-        return;
-    }
-    
-    // Handle the OpenAI-style response structure to extract post content
-    if (!isset($data['choices'][0]['message']['content'])) {
-        error_log('RapidTextAI: Response missing required data structure');
-        // log data
-        
-        return;
-    }
-    // Get the content from the response and convert from markdown to HTML if needed
-    $content = $data['choices'][0]['message']['content'];
-    
-    // Extract title from content (assuming first line is a heading)
-    $title = '';
-    $post_content = $content;
-    
-    // Try to extract a title from first line if it looks like a heading
-    if (preg_match('/^#\s+(.+)$/m', $content, $matches) || preg_match('/^(.+)\n[=]+\s*$/m', $content, $matches)) {
-        $title = trim($matches[1]);
-        // Remove the title from content
-        $post_content = preg_replace('/^#\s+(.+)$\n+/m', '', $post_content, 1);
-        $post_content = preg_replace('/^(.+)\n[=]+\s*$\n+/m', '', $post_content, 1);
-    } else {
-        // Use first sentence as title if no heading
-        $sentences = explode('.', $content, 2);
-        $title = trim($sentences[0]);
-        if (strlen($title) > 60) {
-            $title = substr($title, 0, 57) . '...';
-        }
-    }
-    
-    // Convert markdown content to HTML
-    $post_content = rapidtextai_simple_markdown_to_html($post_content);
-    
-    // Generate an excerpt
-    $excerpt = wp_trim_words(wp_strip_all_tags($post_content), $settings['excerpt_length'], '...');
-    
-    // Prepare generated post structure
-    $generated_post = array(
-        'title' => $title,
-        'content' => $post_content,
-        'excerpt' => $excerpt,
-        'taxonomies' => array(
-            'post_tag' => array(),
-            'category' => array()
-        )
+        'max_tokens' => 100,
+        'temperature' => 0.8,
     );
+    
+    $api_url = "https://app.rapidtextai.com/openai/v1/chat/completions?gigsixkey=" . urlencode($api_key);
+    
+    $response = wp_remote_post($api_url, array(
+        'timeout' => 60,
+        'headers' => array('Content-Type' => 'application/json'),
+        'body' => json_encode($title_data),
+    ));
+    
+    if (is_wp_error($response)) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stage 2: Title generation failed - ' . $response->get_error_message());
+        delete_transient($transient_key);
+        return;
+    }
+    
+    $response_body = wp_remote_retrieve_body($response);
+    $result = json_decode($response_body, true);
+    
+    if (empty($result['choices'][0]['message']['content'])) {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: Stage 2: No title returned from API');
+        delete_transient($transient_key);
+        return;
+    }
+    
+    $title = trim($result['choices'][0]['message']['content']);
+    
+    // Remove quotes if present
+    $title = trim($title, '"\'');
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 2: Generated title: "' . $title . '"');
+    
+    // Update transient with title
+    $data['title'] = $title;
+    set_transient($transient_key, $data, HOUR_IN_SECONDS);
+    
+    // Schedule Stage 3: Create post
+    wp_schedule_single_event(time() + 2, 'rapidtextai_create_post', array($transient_key));
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: Stage 2: Scheduled post creation job');
+}
+
+// Stage 3: Create post with title and content
+function rapidtextai_create_post_handler($transient_key) {
+    $log_settings = get_option('rapidtextai_auto_blogging', array()); 
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: Stage 3: Creating post from transient: ' . $transient_key);
+    
+    // Get data from transient
+    $data = get_transient($transient_key);
+    
+    if ($data === false || empty($data['content']) || empty($data['title'])) {
+        if(!empty($log_settings['enable_logging']))
+        error_log('RapidTextAI: Stage 3: Missing data in transient: ' . $transient_key);
+        return;
+    }
+    
+    $content = $data['content'];
+    $title = $data['title'];
+    $topic = $data['topic'];
+    $settings = $data['settings'];
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: Stage 3: Creating post with title: "' . $title . '"');
+    
+    // Convert markdown to HTML
+    $post_content = rapidtextai_simple_markdown_to_html($content);
+    
+    // Generate excerpt
+    $excerpt_length = isset($settings['excerpt_length']) && $settings['excerpt_length'] > 0 ? $settings['excerpt_length'] : 55;
+    $excerpt = wp_trim_words(wp_strip_all_tags($post_content), $excerpt_length, '...');
+    
+    // Create the post
+    $post_id = wp_insert_post(array(
+        'post_title'   => $title,
+        'post_content' => $post_content,
+        'post_excerpt' => $excerpt,
+        'post_status'  => 'draft',
+        'post_author'  => $settings['post_author'],
+    ));
+    
+    if (is_wp_error($post_id)) {
+        if(!empty($log_settings['enable_logging']))
+        error_log('RapidTextAI: Stage 3: Failed to create post - ' . $post_id->get_error_message());
+        delete_transient($transient_key);
+        return;
+    }
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: Stage 3: Created post ID ' . $post_id);
+    
+    // Store metadata
+    update_post_meta($post_id, '_rapidtextai_topic', $topic);
+    update_post_meta($post_id, '_rapidtextai_settings', $settings);
+    update_post_meta($post_id, '_rapidtextai_raw_content', $content);
+    update_post_meta($post_id, '_rapidtextai_status', 'created');
+    update_post_meta($post_id, '_rapidtextai_started', $data['created']);
+    
+    // Delete transient (no longer needed)
+    delete_transient($transient_key);
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: Stage 3: Post created successfully, scheduling finalization');
+    
+    // Schedule Stage 4: Finalize (add images, tags, publish)
+    wp_schedule_single_event(time() + 2, 'rapidtextai_finalize_post', array($post_id));
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: Stage 3: Scheduled finalization job for post ' . $post_id);
+}
+
+// Stage 4: Finalize post (tags, images, status)
+function rapidtextai_finalize_post_handler($post_id) {
+    $log_settings = get_option('rapidtextai_auto_blogging', array());
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: Stage 4: Finalizing post ' . $post_id);
+    
+    $settings = get_post_meta($post_id, '_rapidtextai_settings', true);
+    $raw_content = get_post_meta($post_id, '_rapidtextai_raw_content', true);
+    $post = get_post($post_id);
+    
+    if (empty($settings) || !$post) {
+        if(!empty($log_settings['enable_logging']))
+        error_log('RapidTextAI: Stage 4: Missing data for post ' . $post_id);
+        update_post_meta($post_id, '_rapidtextai_status', 'failed');
+        return;
+    }
+    
+    update_post_meta($post_id, '_rapidtextai_status', 'finalizing');
     
     // Generate tags if enabled
     if ($settings['generate_tags']) {
-        // Set up request for generating tags
-        $tag_prompt = "Generate only {$settings['tags_count']} comma-separated tags for this content: " . substr($content, 0, 1000);
+        if(!empty($log_settings['enable_logging']))
+        error_log('RapidTextAI: Stage 4: Generating tags for post ' . $post_id);
+        
+        $api_key = get_option('rapidtextai_api_key', '');
+        $tag_prompt = "Generate only {$settings['tags_count']} comma-separated tags for this content in content language: " . substr($raw_content, 0, 1000);
         
         $tag_data = array(
             'model' => 'gpt-3.5-turbo',
-            'messages' => [
-                [
+            'messages' => array(
+                array(
                     'role' => 'system',
                     'content' => 'Generate only keywords as tags, keep them simple and relevant.'
-                ],
-                [
+                ),
+                array(
                     'role' => 'user',
                     'content' => $tag_prompt
-                ]
-            ],
+                )
+            ),
             'temperature' => 0.5,
             'max_tokens' => 100
         );
         
+        $api_url = "https://app.rapidtextai.com/openai/v1/chat/completions?gigsixkey=" . urlencode($api_key);
+        
         $tag_response = wp_remote_post($api_url, array(
             'body' => json_encode($tag_data),
             'headers' => array('Content-Type' => 'application/json'),
-            'timeout' => 30
+            'timeout' => 30,
+            'sslverify' => false
         ));
         
         if (!is_wp_error($tag_response)) {
             $tag_body = wp_remote_retrieve_body($tag_response);
-            $tag_data = json_decode($tag_body, true);
+            $tag_result = json_decode($tag_body, true);
             
-            if (isset($tag_data['choices'][0]['message']['content'])) {
-                $tags = explode(',', $tag_data['choices'][0]['message']['content']);
+            if (isset($tag_result['choices'][0]['message']['content'])) {
+                $tags = explode(',', $tag_result['choices'][0]['message']['content']);
                 $tags = array_map('trim', $tags);
-                $generated_post['taxonomies']['post_tag'] = $tags;
+                $tags = array_slice($tags, 0, $settings['tags_count']);
+                wp_set_post_tags($post_id, $tags, false);
+                if(!empty($log_settings['enable_logging']))
+                error_log('RapidTextAI: Stage 4: Added ' . count($tags) . ' tags to post ' . $post_id);
             }
         }
     }
     
-    // Prepare content with images if enabled
+    // Add images if enabled
     if ($settings['include_images']) {
-        // Extract headings for image insertion
+        if(!empty($log_settings['enable_logging']))
+        error_log('RapidTextAI: Stage 4: Adding images to post ' . $post_id);
+        
+        $post_content = $post->post_content;
         preg_match_all('/<h[2-4][^>]*>(.*?)<\/h[2-4]>/i', $post_content, $headings);
-        $images = 0;
+        $images_added = 0;
+        
         if (!empty($headings[1])) {
-            foreach ($headings[1] as $key => $heading) {
-                // Skip conclusion headings
+            foreach ($headings[1] as $heading) {
                 if (stripos($heading, 'conclusion') !== false) {
                     continue;
                 }
@@ -792,44 +1123,42 @@ function rapidtextai_generate_auto_blog_post() {
                 $image_data = rapidtextai_get_image_for_heading($heading);
                 
                 if ($image_data) {
-                    $images++;
+                    $images_added++;
                     $image_html = '<div class="wp-block-image"><figure class="aligncenter">';
                     $image_html .= '<img width="100%" src="' . esc_url($image_data['link']) . '" alt="' . esc_attr($heading) . '"/>';
                     $image_html .= '<figcaption class="wp-element-caption">Source: <a href="' . esc_url($image_data['context_link']) . '">' . esc_html($image_data['display_link']) . '</a></figcaption>';
                     $image_html .= '</figure></div>';
                     
-                    // Insert image before this specific heading
                     $heading_pattern = '/<h[2-4][^>]*>' . preg_quote($heading, '/') . '<\/h[2-4]>/i';
                     $replacement = $image_html . '$0';
-                    $generated_post['content'] = preg_replace($heading_pattern, $replacement, $generated_post['content'], 1);
-
-                    // maximum number of images reached
-                    if ($images >= $settings['max_images']) {
+                    $post_content = preg_replace($heading_pattern, $replacement, $post_content, 1);
+                    
+                    if ($images_added >= $settings['max_images']) {
                         break;
                     }
                 }
             }
+            
+            if ($images_added > 0) {
+                wp_update_post(array(
+                    'ID' => $post_id,
+                    'post_content' => $post_content
+                ));
+                if(!empty($log_settings['enable_logging']))
+                error_log('RapidTextAI: Stage 4: Added ' . $images_added . ' images to post ' . $post_id);
+            }
         }
     }
     
-    // Create post
-    $post_data = array(
-        'post_title'    => $generated_post['title'],
-        'post_content'  => $generated_post['content'],
-        'post_excerpt'  => $generated_post['excerpt'],
-        'post_status'   => $settings['post_status'],
-        'post_author'   => $settings['post_author'],
-        'post_category' => $settings['post_category'],
-    );
-    
-    $post_id = wp_insert_post($post_data);
-    
     // Set featured image if enabled
     if (isset($settings['include_featured_image']) && $settings['include_featured_image']) {
-        $featured_image_data = rapidtextai_get_featured_image_for_topic($selected_topic);
+        if(!empty($log_settings['enable_logging']))
+        error_log('RapidTextAI: Stage 4: Setting featured image for post ' . $post_id);
+        
+        $topic = get_post_meta($post_id, '_rapidtextai_topic', true);
+        $featured_image_data = rapidtextai_get_featured_image_for_topic($topic);
         
         if ($featured_image_data && !empty($featured_image_data['link'])) {
-            // Download and upload the image
             $image_url = $featured_image_data['link'];
             $image_response = wp_remote_get($image_url, array(
                 'timeout' => 30,
@@ -840,7 +1169,6 @@ function rapidtextai_generate_auto_blog_post() {
                 $image_data = wp_remote_retrieve_body($image_response);
                 $image_type = wp_remote_retrieve_header($image_response, 'content-type');
                 
-                // Get file extension based on content type
                 $extension = 'jpg';
                 if (strpos($image_type, 'png') !== false) {
                     $extension = 'png';
@@ -850,54 +1178,58 @@ function rapidtextai_generate_auto_blog_post() {
                     $extension = 'webp';
                 }
                 
-                // Create a safe filename
-                $filename = sanitize_file_name(substr($generated_post['title'], 0, 50)) . '.' . $extension;
-                
-                // Upload the file
+                $filename = sanitize_file_name(substr($post->post_title, 0, 50)) . '.' . $extension;
                 $upload = wp_upload_bits($filename, null, $image_data);
                 
                 if (!$upload['error']) {
                     $wp_filetype = wp_check_filetype($upload['file']);
                     $attachment = array(
                         'post_mime_type' => $wp_filetype['type'],
-                        'post_title' => sanitize_text_field($generated_post['title']),
+                        'post_title' => sanitize_text_field($post->post_title),
                         'post_content' => '',
                         'post_status' => 'inherit'
                     );
                     
-                    $attach_id = wp_insert_attachment($attachment, $upload['file'], $post_id);                   
+                    $attach_id = wp_insert_attachment($attachment, $upload['file'], $post_id);
+                    
                     if (!is_wp_error($attach_id)) {
                         require_once(ABSPATH . 'wp-admin/includes/image.php');
                         $attach_data = wp_generate_attachment_metadata($attach_id, $upload['file']);
                         wp_update_attachment_metadata($attach_id, $attach_data);
-                        
-                        // Set as featured image
                         set_post_thumbnail($post_id, $attach_id);
-                        
-                        error_log('RapidTextAI: Featured image set for post ID ' . $post_id);
+                        if(!empty($log_settings['enable_logging']))
+                        error_log('RapidTextAI: Stage 4: Set featured image for post ' . $post_id);
                     }
-                } else {
-                    error_log('RapidTextAI: Failed to upload featured image: ' . $upload['error']);
                 }
-            } else {
-                error_log('RapidTextAI: Failed to download featured image from URL: ' . $image_url);
             }
         }
     }
     
-    if (!is_wp_error($post_id)) {
-        // Add taxonomy terms
-        if ($settings['generate_tags'] && !empty($generated_post['taxonomies']['post_tag'])) {
-            $tags = array_slice($generated_post['taxonomies']['post_tag'], 0, $settings['tags_count']);
-            wp_set_post_tags($post_id, $tags, false);
-        }
-        
-        // Log success
-        error_log('RapidTextAI: Successfully generated post ID ' . $post_id . ' with title: ' . $generated_post['title']);
-    } else {
-        error_log('RapidTextAI: Failed to create post: ' . $post_id->get_error_message());
+    // Set categories
+    if (!empty($settings['post_category'])) {
+        wp_set_post_categories($post_id, $settings['post_category']);
+    }
+    
+    // Update post status to final status
+    wp_update_post(array(
+        'ID' => $post_id,
+        'post_status' => $settings['post_status']
+    ));
+    
+    // Clean up temporary metadata
+    delete_post_meta($post_id, '_rapidtextai_raw_content');
+    delete_post_meta($post_id, '_rapidtextai_settings');
+    
+    // Mark as completed
+    update_post_meta($post_id, '_rapidtextai_status', 'completed');
+    update_post_meta($post_id, '_rapidtextai_completed', current_time('mysql'));
+
+    if(!empty($log_settings['enable_logging'])) {
+        error_log('RapidTextAI: Stage 4: Successfully completed post ' . $post_id . ' - "' . $post->post_title . '"');
     }
 }
+
+// Rest of the existing code continues below...
 
 // Function to get image for heading
 function rapidtextai_get_image_for_heading($heading) {
@@ -1105,7 +1437,7 @@ function rapidtextai_generate_search_query_for_featured($topic) {
     if (empty($api_key)) {
         return false;
     }
-    
+    $log_settings = get_option('rapidtextai_auto_blogging', array());
     // Create prompt for generating search query
     $prompt = "Based on this blog post topic, generate a short and specific search query (2-4 words) that would find the best featured image for this article. Focus on the main concept or subject matter.\n\nTopic: " . $topic . "\n\nReturn only the search query, nothing else.";
     
@@ -1139,6 +1471,7 @@ function rapidtextai_generate_search_query_for_featured($topic) {
     ));
     
     if (is_wp_error($response)) {
+        if(!empty($log_settings['enable_logging']))
         error_log('RapidTextAI: Failed to generate search query: ' . $response->get_error_message());
         return false;
     }
@@ -1147,6 +1480,7 @@ function rapidtextai_generate_search_query_for_featured($topic) {
     $data = json_decode($body, true);
     
     if (!isset($data['choices'][0]['message']['content'])) {
+        if(!empty($log_settings['enable_logging']))
         error_log('RapidTextAI: Invalid response when generating search query');
         return false;
     }

@@ -196,7 +196,7 @@ function rapidtextai_generate_article($return = false) {
     $text = isset( $_POST['text'] ) ? sanitize_textarea_field( $_POST['text'] ) : '';
     $temperature = isset( $_POST['temperature'] ) ? sanitize_text_field( $_POST['temperature'] ) : '0.7';
     $custom_prompt = isset( $_POST['custom_prompt'] ) ? sanitize_textarea_field( $_POST['custom_prompt'] ) : '';
-    $chatsession = isset( $_POST['chatsession'] ) ? sanitize_text_field( $_POST['chatsession'] ) : rad2deg(time());
+    $chatsession = isset( $_POST['chatsession'] ) ? sanitize_text_field( $_POST['chatsession'] ) : 'rapidtextai__'.sanitize_text_field( $_POST['model'] ).'_' . time() . '_' . wp_rand();
     $userid = isset( $_POST['userid'] ) ? sanitize_text_field( $_POST['userid'] ) : '';
 
     // Handle model
@@ -279,7 +279,7 @@ function rapidtextai_generate_article_stream() {
     // Get POST data
     $custom_prompt = isset( $_POST['custom_prompt'] ) ? sanitize_textarea_field( $_POST['custom_prompt'] ) : '';
     $model = isset( $_POST['model'] ) ? sanitize_text_field( $_POST['model'] ) : 'gemini-2.0-flash';
-    $chatsession = isset( $_POST['chatsession'] ) ? sanitize_text_field( $_POST['chatsession'] ) : time();
+    $chatsession = isset( $_POST['chatsession'] ) ? sanitize_text_field( $_POST['chatsession'] ) : 'rapidtextai_'.$model.'_' . time() . '_' . wp_rand();
 
     // Build the API request payload with streaming enabled
     $api_payload = json_encode([

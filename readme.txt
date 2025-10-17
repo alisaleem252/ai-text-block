@@ -202,6 +202,15 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 
 == Changelog ==
 
+= 3.7.0
+* Added streaming content support for Auto Blogging feature
+* Implemented real-time notifications and admin notices for usage limits
+* Added proactive alerts when users approach their monthly limits
+* Introduced unlimited tokens for premium users
+* Added multi-language support for tags, content, excerpts, and titles
+* Enhanced user experience with better limit monitoring and notifications
+* Toggle Logs
+
 = 3.6.5 =
 * Added Grok 3 for Auto Blogging
 

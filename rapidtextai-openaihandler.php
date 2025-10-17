@@ -50,7 +50,7 @@ function rapidtextai_get_excerpt_ajax_handler() {
             ],
             [
                 'role' => 'user', 
-                'content' => wp_strip_all_tags($post_content)
+                'content' => 'Generate a concise excerpt from the following content in approximately '.$excerpt_length.' words in content language: '.wp_strip_all_tags($post_content)
             ]
         ],
         'max_tokens' => 150,
@@ -119,7 +119,7 @@ function rapidtextai_get_taxonomy_terms_ajax_handler() {
             ],
             [
                 'role' => 'user',
-                'content' => wp_strip_all_tags($post->post_content)
+                'content' => "Return only comma separated $number_of_terms {$taxonomy} terms based on the following content in content language: ".wp_strip_all_tags($post->post_content)
             ]
         ],
         'max_tokens' => 150,
@@ -206,7 +206,7 @@ function rapidtextai_get_tags_ajax_handler() {
             ],
             [
                 'role' => 'user', 
-                'content' => 'Return only comma seperated '.$number_of_tags.' categories based on the following content: '.wp_strip_all_tags($post_content)
+                'content' => 'Return only comma seperated '.$number_of_tags.' categories based on the following content in content language: '.wp_strip_all_tags($post_content)
             ]
         ],
         'max_tokens' => 150,

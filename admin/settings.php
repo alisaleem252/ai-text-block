@@ -459,17 +459,21 @@
                     if (response_data.response_code) {
                         var code = response_data.response_code;
 
-                        if (code == 1 || code == 2 || code == 4) {
+                        if (code == 1 || code == 2) {
                             output += '<table class="form-table">';
-                            output += '<tr><th>Created</th><td>' + (code == 1 ? response_data.create_at : 'N/A') + '</td></tr>';
-                            output += '<tr><th>Status</th><td>' + (code == 1 ? response_data.subscription_status : 'Trial') + '</td></tr>';
+                            output += '<tr><th>Created</th><td>' + (code == 1 ? response_data.create_at : response_data.subscription_cycle) + '</td></tr>';
+                            output += '<tr><th>Status</th><td>' + (code == 1 ? response_data.subscription_status : 'Free Trial') + '</td></tr>';
+                            output += '<tr><th>Plan</th><td>' + (code == 1 ? 'Premium' : 'Free') + '</td></tr>';
                             output += '<tr><th>Interval</th><td>' + (code == 1 ? response_data.subscription_interval : 'N/A') + '</td></tr>';
                             output += '<tr><th>Start</th><td>' + (code == 1 ? response_data.current_period_start : 'N/A') + '</td></tr>';
                             output += '<tr><th>End</th><td>' + (code == 1 ? response_data.current_period_end : 'N/A') + '</td></tr>';
-                            output += '<tr><th>Requests</th><td>' + (code == 1 ? response_data.requests + '/ ∞' : response_data.requests + '/ 100') + '</td></tr>';
+                            output += '<tr><th>Requests Used</th><td>' + response_data.requests_used + '</td></tr>';
+                            output += '<tr><th>Request Limit</th><td>' + response_data.request_limit + '</td></tr>';
+                            output += '<tr><th>Remaining</th><td>' + (response_data.request_limit - response_data.requests_used) + '</td></tr>';
                             output += '<tr><th>Models</th><td>' + response_data.models + '</td></tr>';
                             output += '</table>';
-                            if (code == 2 || code == 4) {
+                            
+                            if (code == 2) {
                                 output += '<div style="margin-top: 20px;">';
                                 output += '<h3 style="color: #2271b1; margin-bottom: 16px;">Upgrade Your Plan</h3>';
                                 output += '<div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 20px;">';
@@ -479,17 +483,28 @@
                                 output += '<h4 style="color: #1d2327; margin-bottom: 8px;">Basic Plan</h4>';
                                 output += '<div style="font-size: 24px; font-weight: 600; color: #2271b1; margin-bottom: 16px;">$10/month</div>';
                                 output += '<ul style="list-style: none; padding: 0; margin: 0 0 20px 0;">';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> 1,000 Articles/month</li>';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Preferred Article Length</li>';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Target Audience</li>';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Writing Style</li>';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Article Structure</li>';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Internal Links</li>';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> External Links</li>';
-                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Include a Call-to-Action</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> 10,000 Requests/month</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> All AI Models</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Advanced Features</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Priority Support</li>';
                                 output += '</ul>';
                                 output += '<a href="https://app.rapidtextai.com/pricing" target="_blank" style="display: inline-block; background: #2271b1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Upgrade Now</a>';
                                 output += '</div>';
+                                
+                                // Pro Plan
+                                output += '<div style="border: 1px solid #e2e4e7; border-radius: 8px; padding: 20px; background: #fff;">';
+                                output += '<h4 style="color: #1d2327; margin-bottom: 8px;">Pro Plan</h4>';
+                                output += '<div style="font-size: 24px; font-weight: 600; color: #2271b1; margin-bottom: 16px;">$30/month</div>';
+                                output += '<ul style="list-style: none; padding: 0; margin: 0 0 20px 0;">';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> 30,000 Requests/month</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> All AI Models</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Advanced Features</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> Priority Support</li>';
+                                output += '<li style="padding: 4px 0;"><span style="color: #00a32a;">✓</span> API Access</li>';
+                                output += '</ul>';
+                                output += '<a href="https://app.rapidtextai.com/pricing" target="_blank" style="display: inline-block; background: #2271b1; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px;">Upgrade Now</a>';
+                                output += '</div>';
+                                
                                 output += '</div>';
                                 output += '</div>';
                             }
