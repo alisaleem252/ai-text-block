@@ -2,7 +2,7 @@
 Contributors: zinger252  
 Tags: ai content generator, gpt-4, article writer, content automation, wordpress ai
 Requires at least: 6.0  
-Tested up to: 6.8.2  
+Tested up to: 6.9  
 Requires PHP: 7.0  
 Stable tag: trunk  
 License: GPLv2 or later  
