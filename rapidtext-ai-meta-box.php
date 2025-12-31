@@ -45,7 +45,7 @@ function rapidtextai_meta_box_callback( $post ) {
                 <option value="deepseek-chat">Deepseek 3.1 (DeepSeek)</option>
                 <option value="claude-3-7-sonnet-latest">Claude 3.7 Sonnet (Anthropic)</option>
                 <option value="claude-3-7-sonnet-latest">Claude 3.7 Sonnet (Anthropic)</option>
-                <option value="glm-4.5-flash">GLM-4.5 Flash (Zhipu AI)</option>
+                <option value="glm-4.6v-flash">GLM-4.6V Flash (Zhipu AI)</option>
                 <option value="gpt-5">GPT-5 (OpenAI)</option>
                 <option value="gpt-4">GPT-4 (OpenAI)</option>
                 <option value="gpt-3.5">GPT-3.5 (OpenAI)</option>

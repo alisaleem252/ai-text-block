@@ -69,7 +69,7 @@
                                     <option value="gpt-4" <?php selected($settings['model'], 'gpt-4'); ?>><?php esc_html_e('GPT-4 (OpenAI)', 'rapidtextai'); ?></option>
                                     <option value="gpt-3.5-turbo" <?php selected($settings['model'], 'gpt-3.5-turbo'); ?>><?php esc_html_e('GPT-3.5 Turbo (OpenAI)', 'rapidtextai'); ?></option>
                                     <option value="grok-3" <?php selected($settings['model'], 'grok-3'); ?>><?php esc_html_e('Grok 3 (xAI)', 'rapidtextai'); ?></option>
-                                    <option value="glm-4.5-flash" <?php selected($settings['model'], 'glm-4.5-flash'); ?>><?php esc_html_e('GLM-4.5 Flash (Zhipu AI)', 'rapidtextai'); ?></option>
+                                    <option value="glm-4.6v-flash" <?php selected($settings['model'], 'glm-4.6v-flash'); ?>><?php esc_html_e('GLM-4.5 Flash (Zhipu AI)', 'rapidtextai'); ?></option>
                                 </select>
                             </div>
 
