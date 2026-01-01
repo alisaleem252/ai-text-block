@@ -202,7 +202,18 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 
 == Changelog ==
 
-= 3.7.0
+= 3.8.0 =
+* Added Multi-Campaign Auto Blogging System - Create and manage multiple auto-blogging campaigns with different settings
+* Campaign Management UI - New interface to create, edit, enable/disable, and delete campaigns
+* Improved Topic Generation - "Improve with AI" feature now generates properly formatted topics on single lines
+* Campaign-Specific Scheduling - Each campaign can have its own schedule (hourly, daily, weekly)
+* Enhanced Logging - All auto-blogging logs now include campaign identifiers for better tracking
+* Backward Compatibility - Existing auto-blogging settings automatically migrate to a default campaign
+* Campaign Tracking - Posts now tagged with campaign IDs for better organization
+* Better UX - Redirect after save, fixed infinite loops, improved error handling
+* Full Documentation - Complete migration guide and database structure documentation included
+
+= 3.7.0 =
 * Added streaming content support for Auto Blogging feature
 * Implemented real-time notifications and admin notices for usage limits
 * Added proactive alerts when users approach their monthly limits
@@ -303,6 +314,9 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 * Initial release with basic AI block functionality.
 
 == Upgrade Notice ==
+
+= 3.8.0 =
+Major update! Multi-campaign auto-blogging system allows you to manage multiple content strategies simultaneously. Existing settings automatically migrate to a default campaign.
 
 = 1.2 =
 Upgrade to get support for WP Bakery and improved AI content generation.

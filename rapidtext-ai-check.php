@@ -1,12 +1,7 @@
-
 <?php
 
 
 if ( ! defined( 'ABSPATH' ) ) exit; // Exit if accessed directly 
-
-
-
-
 // Add admin notice for usage limits
 add_action('admin_notices', 'rapidtextai_usage_limit_notice');
 

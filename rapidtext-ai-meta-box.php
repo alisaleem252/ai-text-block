@@ -41,7 +41,7 @@ function rapidtextai_meta_box_callback( $post ) {
             <label for="modelSelection" class="form-label">Select Model</label>
             <select class="form-select" id="modelSelection">
                 <option value="gemini-2.0-flash">Gemini 2.0 (Google)</option>
-                <option value="gemini-2.5-flash-preview-05-20">Gemini 2.5 (Google)</option>
+                <option value="gemini-2.5-flash">Gemini 2.5 (Google)</option>
                 <option value="deepseek-chat">Deepseek 3.1 (DeepSeek)</option>
                 <option value="claude-3-7-sonnet-latest">Claude 3.7 Sonnet (Anthropic)</option>
                 <option value="claude-3-7-sonnet-latest">Claude 3.7 Sonnet (Anthropic)</option>

@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 3.7.1
+* Version: 3.8.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -27,6 +27,78 @@ function rapidtextai_admin_notice() {
         <?php
     }
 }
+
+// Show "What's New" notice after update to version 3.8.0
+add_action('admin_notices', 'rapidtextai_whats_new_notice');
+
+function rapidtextai_whats_new_notice() {
+    // Only show to users who can manage options
+    if (!current_user_can('manage_options')) {
+        return;
+    }
+    
+    // Check if user has already seen the notice for version 3.8.0
+    $dismissed_version = get_option('rapidtextai_whats_new_dismissed', '0');
+    if (version_compare($dismissed_version, '3.8.0', '>=')) {
+        return;
+    }
+    
+    // Don't show if user just dismissed it in this session
+    if (isset($_GET['rapidtextai_dismiss_whats_new']) && $_GET['rapidtextai_dismiss_whats_new'] === '1') {
+        update_option('rapidtextai_whats_new_dismissed', '3.8.0');
+        return;
+    }
+    
+    $dismiss_url = add_query_arg('rapidtextai_dismiss_whats_new', '1');
+    ?>
+    <div class="notice notice-info is-dismissible rapidtextai-whats-new-notice" style="border-left-color: #2271b1; padding: 20px;">
+        <div style="display: flex; align-items: start; gap: 20px;">
+            <div style="font-size: 48px; line-height: 1;">🚀</div>
+            <div style="flex: 1;">
+                <h2 style="margin: 0 0 15px 0; font-size: 20px;">What's New in RapidTextAI v3.8.0</h2>
+                
+                <div style="margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2271b1;">🎯 Multi-Campaign Auto Blogging System</h3>
+                    <p style="margin: 0 0 10px 0;">You can now create and manage <strong>multiple auto-blogging campaigns</strong> with different settings, schedules, and topics!</p>
+                    <ul style="margin: 0 0 10px 0; padding-left: 20px;">
+                        <li><strong>Create Multiple Campaigns</strong> - Each with its own topics, schedule, and AI model</li>
+                        <li><strong>Individual Scheduling</strong> - Set different frequencies (hourly, daily, weekly) per campaign</li>
+                        <li><strong>Easy Management</strong> - Enable/disable campaigns with one click</li>
+                        <li><strong>Campaign Tracking</strong> - See which campaign generated which post</li>
+                    </ul>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2271b1;">✨ Improved Topic Generation</h3>
+                    <p style="margin: 0;">The "Improve with AI" feature now generates better-formatted topics with all metadata on a single line for easier management.</p>
+                </div>
+                
+                <div style="margin-bottom: 15px;">
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2271b1;">🔄 Automatic Migration</h3>
+                    <p style="margin: 0;">Your existing auto-blogging settings have been automatically migrated to a "Default Campaign" - no action needed!</p>
+                </div>
+                
+                <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
+                    <a href="<?php echo admin_url('admin.php?page=rapidtextai-auto-blogging'); ?>" class="button button-primary" style="margin-right: 10px;">
+                        View Auto Blogging Campaigns
+                    </a>
+                    <a href="<?php echo esc_url($dismiss_url); ?>" class="button button-secondary">
+                        Got it, don't show again
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+    jQuery(document).ready(function($) {
+        $('.rapidtextai-whats-new-notice .notice-dismiss').on('click', function() {
+            window.location.href = '<?php echo esc_js($dismiss_url); ?>';
+        });
+    });
+    </script>
+    <?php
+}
+
 
 function rapidtextai_register_gutenberg_block() {
     wp_register_script(
@@ -429,17 +501,133 @@ function rapidtextai_add_auto_blogging_menu() {
 }
 add_action('admin_menu', 'rapidtextai_add_auto_blogging_menu');
 
+// Migration function to convert old settings to campaign-based structure
+function rapidtextai_migrate_to_campaigns() {
+    // Check if migration is needed
+    if (get_option('rapidtextai_campaigns_migrated')) {
+        return; // Already migrated
+    }
+    
+    // Get old settings
+    $old_settings = get_option('rapidtextai_auto_blogging', array());
+    
+    // If old settings exist, create a default campaign
+    if (!empty($old_settings)) {
+        $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+        
+        // Create default campaign from old settings
+        $default_campaign = array(
+            'id' => 'campaign_' . time(),
+            'name' => 'Default Campaign',
+            'enabled' => isset($old_settings['enabled']) ? $old_settings['enabled'] : 0,
+            'schedule' => isset($old_settings['schedule']) ? $old_settings['schedule'] : 'daily',
+            'post_status' => isset($old_settings['post_status']) ? $old_settings['post_status'] : 'draft',
+            'post_author' => isset($old_settings['post_author']) ? $old_settings['post_author'] : get_current_user_id(),
+            'topics' => isset($old_settings['topics']) ? $old_settings['topics'] : '',
+            'model' => isset($old_settings['model']) ? $old_settings['model'] : 'gpt-3.5-turbo',
+            'tone' => isset($old_settings['tone']) ? $old_settings['tone'] : 'informative',
+            'post_category' => isset($old_settings['post_category']) ? $old_settings['post_category'] : array(1),
+            'generate_tags' => isset($old_settings['generate_tags']) ? $old_settings['generate_tags'] : 1,
+            'tags_count' => isset($old_settings['tags_count']) ? $old_settings['tags_count'] : 5,
+            'excerpt_length' => isset($old_settings['excerpt_length']) ? $old_settings['excerpt_length'] : 55,
+            'taxonomy_limit' => isset($old_settings['taxonomy_limit']) ? $old_settings['taxonomy_limit'] : 5,
+            'include_images' => isset($old_settings['include_images']) ? $old_settings['include_images'] : 1,
+            'include_featured_image' => isset($old_settings['include_featured_image']) ? $old_settings['include_featured_image'] : 0,
+            'max_images' => isset($old_settings['max_images']) ? $old_settings['max_images'] : 5,
+            'enable_logging' => isset($old_settings['enable_logging']) ? $old_settings['enable_logging'] : 0,
+            'created' => current_time('mysql'),
+        );
+        
+        $campaigns[$default_campaign['id']] = $default_campaign;
+        update_option('rapidtextai_auto_blogging_campaigns', $campaigns);
+        
+        // Keep old settings for backward compatibility but mark as migrated
+        update_option('rapidtextai_campaigns_migrated', true);
+    } else {
+        // No old settings, just mark as migrated
+        update_option('rapidtextai_campaigns_migrated', true);
+    }
+}
+
+// Run migration on plugin load
+add_action('plugins_loaded', 'rapidtextai_migrate_to_campaigns');
+
 // Auto Blogging settings page
 function rapidtextai_auto_blogging_page() {
     if (!current_user_can('manage_options')) {
         return;
     }
     
-    // Save settings
-    if (isset($_POST['rapidtextai_save_auto_blogging']) && isset($_POST['rapidtextai_auto_blogging_nonce']) && 
-        wp_verify_nonce($_POST['rapidtextai_auto_blogging_nonce'], 'rapidtextai_auto_blogging')) {
+    // Handle campaign actions
+    if (isset($_GET['action']) && isset($_GET['campaign_id']) && isset($_GET['_wpnonce']) && wp_verify_nonce($_GET['_wpnonce'], 'rapidtextai_campaign_action')) {
+        $campaign_id = sanitize_text_field($_GET['campaign_id']);
+        $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+        $redirect_url = admin_url('admin.php?page=rapidtextai-auto-blogging');
         
-        $settings = array(
+        switch ($_GET['action']) {
+            case 'delete':
+                if (isset($campaigns[$campaign_id])) {
+                    // Clear the campaign's cron job
+                    wp_clear_scheduled_hook('rapidtextai_auto_blogging_cron_' . $campaign_id);
+                    unset($campaigns[$campaign_id]);
+                    update_option('rapidtextai_auto_blogging_campaigns', $campaigns);
+                    $redirect_url = add_query_arg('message', 'deleted', $redirect_url);
+                }
+                break;
+            case 'toggle':
+                if (isset($campaigns[$campaign_id])) {
+                    $campaigns[$campaign_id]['enabled'] = !$campaigns[$campaign_id]['enabled'];
+                    update_option('rapidtextai_auto_blogging_campaigns', $campaigns);
+                    
+                    // Update cron
+                    if ($campaigns[$campaign_id]['enabled']) {
+                        rapidtextai_schedule_campaign_cron($campaign_id, $campaigns[$campaign_id]);
+                    } else {
+                        wp_clear_scheduled_hook('rapidtextai_auto_blogging_cron_' . $campaign_id);
+                    }
+                    
+                    $status = $campaigns[$campaign_id]['enabled'] ? 'enabled' : 'disabled';
+                    $redirect_url = add_query_arg('message', $status, $redirect_url);
+                }
+                break;
+        }
+        
+        // Redirect to prevent action from being processed again
+        if (!headers_sent()) {
+            wp_redirect($redirect_url);
+            exit;
+        } else {
+            // Use JavaScript redirect if headers already sent
+            echo '<script type="text/javascript">window.location.href = "' . esc_url($redirect_url) . '";</script>';
+            exit;
+        }
+    }
+    
+    // Display admin messages
+    if (isset($_GET['message'])) {
+        $message = sanitize_text_field($_GET['message']);
+        $messages = array(
+            'deleted' => 'Campaign deleted successfully.',
+            'enabled' => 'Campaign enabled successfully.',
+            'disabled' => 'Campaign disabled successfully.',
+            'created' => 'Campaign created successfully.',
+            'updated' => 'Campaign updated successfully.',
+        );
+        if (isset($messages[$message])) {
+            echo '<div class="notice notice-success is-dismissible"><p>' . esc_html($messages[$message]) . '</p></div>';
+        }
+    }
+    
+    // Save campaign settings
+    if (isset($_POST['rapidtextai_save_campaign']) && isset($_POST['rapidtextai_campaign_nonce']) && 
+        wp_verify_nonce($_POST['rapidtextai_campaign_nonce'], 'rapidtextai_save_campaign')) {
+        
+        $campaign_id = isset($_POST['campaign_id']) && !empty($_POST['campaign_id']) ? sanitize_text_field($_POST['campaign_id']) : 'campaign_' . time();
+        $is_new = !isset($_POST['campaign_id']) || empty($_POST['campaign_id']);
+        
+        $campaign = array(
+            'id' => $campaign_id,
+            'name' => sanitize_text_field($_POST['campaign_name']),
             'enabled' => isset($_POST['rapidtextai_auto_blogging_enabled']) ? 1 : 0,
             'schedule' => sanitize_text_field($_POST['rapidtextai_schedule']),
             'post_status' => sanitize_text_field($_POST['rapidtextai_post_status']),
@@ -458,46 +646,84 @@ function rapidtextai_auto_blogging_page() {
             'enable_logging' => isset($_POST['rapidtextai_enable_logging']) ? 1 : 0,
         );
         
-        update_option('rapidtextai_auto_blogging', $settings);
-        
-        // Handle cron job scheduling
-        if ($settings['enabled']) {
-            if (!wp_next_scheduled('rapidtextai_auto_blogging_cron')) {
-                if ($settings['schedule'] == 'hourly') {
-                    wp_schedule_event(time(), 'hourly', 'rapidtextai_auto_blogging_cron');
-                } elseif ($settings['schedule'] == 'twicedaily') {
-                    wp_schedule_event(time(), 'twicedaily', 'rapidtextai_auto_blogging_cron');
-                } elseif ($settings['schedule'] == 'daily') {
-                    wp_schedule_event(time(), 'daily', 'rapidtextai_auto_blogging_cron');
-                } elseif ($settings['schedule'] == 'weekly') {
-                    wp_schedule_event(time(), 'weekly', 'rapidtextai_auto_blogging_cron');
-                }
-
-            }
+        if ($is_new) {
+            $campaign['created'] = current_time('mysql');
         } else {
-            wp_clear_scheduled_hook('rapidtextai_auto_blogging_cron');
+            $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+            if (isset($campaigns[$campaign_id]['created'])) {
+                $campaign['created'] = $campaigns[$campaign_id]['created'];
+            }
         }
         
-        echo '<div class="notice notice-success is-dismissible"><p>Settings saved successfully.</p></div>';
+        $campaign['updated'] = current_time('mysql');
+        
+        $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+        $campaigns[$campaign_id] = $campaign;
+        update_option('rapidtextai_auto_blogging_campaigns', $campaigns);
+        
+        // Handle cron job scheduling for this campaign
+        wp_clear_scheduled_hook('rapidtextai_auto_blogging_cron_' . $campaign_id);
+        
+        if ($campaign['enabled']) {
+            rapidtextai_schedule_campaign_cron($campaign_id, $campaign);
+        }
+        
+        // Maintain backward compatibility with old option
+        // If this is the first/default campaign, also update the old option
+        $all_campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+        if (count($all_campaigns) === 1 || strpos($campaign['name'], 'Default') !== false) {
+            update_option('rapidtextai_auto_blogging', $campaign);
+        }
+        
+        // Redirect to campaign list with success message
+        $redirect_url = add_query_arg('message', $is_new ? 'created' : 'updated', admin_url('admin.php?page=rapidtextai-auto-blogging'));
+        
+        if (!headers_sent()) {
+            wp_redirect($redirect_url);
+            exit;
+        } else {
+            echo '<script type="text/javascript">window.location.href = "' . esc_url($redirect_url) . '";</script>';
+            exit;
+        }
     }
     
-    // Get current settings
-    $settings = get_option('rapidtextai_auto_blogging', array(
-        'enabled' => 0,
-        'schedule' => 'daily',
-        'post_status' => 'draft',
-        'post_author' => get_current_user_id(),
-        'topics' => '',
-        'model' => 'gpt-3.5-turbo',
-        'tone' => 'informative',
-        'post_category' => array(1), // Default category
-        'generate_tags' => 1,
-        'tags_count' => 5,
-        'excerpt_length' => 55,
-        'taxonomy_limit' => 5,
-        'include_images' => 1,
-        'max_images' => 5
-    ));
+    // Get current campaigns
+    $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+    
+    // Get campaign to edit
+    $editing_campaign = null;
+    if (isset($_GET['edit_campaign'])) {
+        $edit_id = sanitize_text_field($_GET['edit_campaign']);
+        if (isset($campaigns[$edit_id])) {
+            $editing_campaign = $campaigns[$edit_id];
+        }
+    }
+    
+    // Default settings for new campaign
+    if ($editing_campaign) {
+        $settings = $editing_campaign;
+    } else {
+        $settings = array(
+            'id' => '',
+            'name' => '',
+            'enabled' => 0,
+            'schedule' => 'daily',
+            'post_status' => 'draft',
+            'post_author' => get_current_user_id(),
+            'topics' => '',
+            'model' => 'gpt-3.5-turbo',
+            'tone' => 'informative',
+            'post_category' => array(1),
+            'generate_tags' => 1,
+            'tags_count' => 5,
+            'excerpt_length' => 55,
+            'taxonomy_limit' => 5,
+            'include_images' => 1,
+            'include_featured_image' => 0,
+            'max_images' => 5,
+            'enable_logging' => 0,
+        );
+    }
     
     // Get all authors
     $authors = get_users(array('role__in' => array('administrator', 'editor', 'author')));
@@ -505,18 +731,40 @@ function rapidtextai_auto_blogging_page() {
     // Get all categories
     $categories = get_categories(array('hide_empty' => 0));
     include( RAPIDTEXTAI_PLUGIN_DIR .'/admin/auto_blogging_page.php'); // Include the template file for the settings page
-    ?>
     
     
-    <?php
-    
-    // Handle manual post generation
+    // Handle manual post generation for a campaign
     if (isset($_POST['rapidtextai_generate_post_now']) && isset($_POST['rapidtextai_generate_now_nonce']) && 
         wp_verify_nonce($_POST['rapidtextai_generate_now_nonce'], 'rapidtextai_generate_now')) {
         
-        rapidtextai_generate_auto_blog_post();
-        echo '<div class="notice notice-success is-dismissible"><p>Post generation triggered. Check your posts.</p></div>';
+        $campaign_id = isset($_POST['campaign_id']) ? sanitize_text_field($_POST['campaign_id']) : '';
+        rapidtextai_generate_auto_blog_post($campaign_id);
+        echo '<div class="notice notice-success is-dismissible"><p>Post generation triggered for selected campaign.</p></div>';
     }
+}
+
+// Helper function to schedule campaign cron
+function rapidtextai_schedule_campaign_cron($campaign_id, $campaign) {
+    $hook_name = 'rapidtextai_auto_blogging_cron_' . $campaign_id;
+    
+    if (!wp_next_scheduled($hook_name)) {
+        $schedule = isset($campaign['schedule']) ? $campaign['schedule'] : 'daily';
+        
+        if ($schedule == 'hourly') {
+            wp_schedule_event(time(), 'hourly', $hook_name);
+        } elseif ($schedule == 'twicedaily') {
+            wp_schedule_event(time(), 'twicedaily', $hook_name);
+        } elseif ($schedule == 'daily') {
+            wp_schedule_event(time(), 'daily', $hook_name);
+        } elseif ($schedule == 'weekly') {
+            wp_schedule_event(time(), 'weekly', $hook_name);
+        }
+    }
+    
+    // Register the action for this specific campaign
+    add_action($hook_name, function() use ($campaign_id) {
+        rapidtextai_generate_auto_blog_post($campaign_id);
+    });
 }
 
 // rapidtextai_improve_topics
@@ -553,11 +801,18 @@ function rapidtextai_improve_topics_callback() {
     }
     
     // Create prompt for improving topics
-    $prompt = "I have a list of blog post topics that need improvement to make them more specific, engaging, and SEO-friendly. Please improve each of these topics, topic keywords should be set one per line:\n\n";
+    $prompt = "I have a list of blog post topics that need improvement to make them more specific, engaging, and SEO-friendly. Please improve each of these topics:\n\n";
     $prompt .= implode("\n", $topics_array);
-    $prompt .= "\n\nFor each topic:\n1. Make it more specific\n2. Add relevant keywords\n3. Make it more engaging\n4. Format as a headline\n5. Return one improved version per topic, group each topic specific keywords headline in a single line\n\n 
-    \n\nUse same language as the input topics
-    \n\nexample response Example: Topic: Complete Guide to Sustainable Gardening for Beginners; Keywords: sustainable gardening, eco-friendly plants, organic fertilizer, water conservation, composting methods; Tone: friendly and informative; Audience: homeowners and gardening beginners; Length: 2500-3000 words; CTA: Download our free sustainable gardening checklist";
+    $prompt .= "\n\nIMPORTANT FORMATTING RULES:\n";
+    $prompt .= "1. Each improved topic MUST be on a SINGLE LINE (no line breaks within a topic)\n";
+    $prompt .= "2. Use semicolons (;) to separate different parts within the same topic\n";
+    $prompt .= "3. Separate different topics with a blank line (double newline)\n";
+    $prompt .= "4. Include: Topic, Keywords, Tone, Audience, Length, and CTA\n";
+    $prompt .= "5. Use the same language as the input topics\n\n";
+    $prompt .= "FORMAT EXAMPLE:\n";
+    $prompt .= "Topic: Complete Guide to Sustainable Gardening for Beginners; Keywords: sustainable gardening, eco-friendly plants, organic fertilizer, water conservation, composting methods; Tone: friendly and informative; Audience: homeowners and gardening beginners; Length: 2500-3000 words; CTA: Download our free sustainable gardening checklist\n\n";
+    $prompt .= "Topic: Another Topic Here; Keywords: keyword1, keyword2, keyword3; Tone: professional; Audience: business owners; Length: 1500-2000 words; CTA: Contact us for consultation\n\n";
+    $prompt .= "Return each improved topic on ONE SINGLE LINE, separated by blank lines. Do NOT add line breaks within a topic.";
     
     // Call RapidTextAI API using the chat completions endpoint
     $chat_endpoint = 'https://app.rapidtextai.com/openai/v1/chat/completions?gigsixkey=' . $api_key;
@@ -788,20 +1043,31 @@ function rapidtextai_stream_content_via_sse($api_url, $post_data) {
 }
 
 // Stage 1: Stream article content and save to transient
-function rapidtextai_generate_auto_blog_post() {
-    // Get settings
-    $settings = get_option('rapidtextai_auto_blogging', array());
+function rapidtextai_generate_auto_blog_post($campaign_id = '') {
+    // Get campaign settings
+    if (empty($campaign_id)) {
+        // Backward compatibility: use old settings if no campaign ID provided
+        $settings = get_option('rapidtextai_auto_blogging', array());
+        $campaign_id = 'default';
+    } else {
+        $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+        if (!isset($campaigns[$campaign_id])) {
+            error_log('RapidTextAI: Campaign not found: ' . $campaign_id);
+            return;
+        }
+        $settings = $campaigns[$campaign_id];
+    }
     
     // Check if auto blogging is enabled
     if (empty($settings) || empty($settings['enabled'])) {
         return;
     }
-    // Check user limits before proceeding
+    
     // Check user limits before proceeding
     $user_limits_check = rapidtextai_check_user_limits();
     if (!$user_limits_check) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: User limits exceeded, auto blogging skipped.');
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] User limits exceeded, auto blogging skipped.');
         return false;
     }
     
@@ -812,7 +1078,7 @@ function rapidtextai_generate_auto_blog_post() {
     
     if (empty($topics)) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: No topics available for auto blogging.');
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] No topics available for auto blogging.');
         return;
     }
     
@@ -822,11 +1088,11 @@ function rapidtextai_generate_auto_blog_post() {
     $api_key = get_option('rapidtextai_api_key', '');
     if (empty($api_key)) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: API key not found. Please set up your authentication.');
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] API key not found. Please set up your authentication.');
         return;
     }
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 1: Starting content streaming for topic: ' . $selected_topic);
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Starting content streaming for topic: ' . $selected_topic);
     
     // Set up post data for streaming endpoint
     $post_data = array(
@@ -859,36 +1125,35 @@ function rapidtextai_generate_auto_blog_post() {
     
     if ($content === false) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: Stage 1: Streaming failed for topic: ' . $selected_topic);
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Streaming failed for topic: ' . $selected_topic);
         return;
     }
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 1: Successfully streamed ' . strlen($content) . ' characters');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Successfully streamed ' . strlen($content) . ' characters');
     
     // Generate unique transient key
-    $transient_key = 'rapidtextai_content_' . md5($selected_topic . time());
+    $transient_key = 'rapidtextai_content_' . md5($campaign_id . $selected_topic . time());
     
     // Save content to transient (expires in 1 hour)
     set_transient($transient_key, array(
         'content' => $content,
         'topic' => $selected_topic,
         'settings' => $settings,
+        'campaign_id' => $campaign_id,
         'created' => current_time('mysql'),
     ), HOUR_IN_SECONDS);
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 1: Content saved to transient: ' . $transient_key);
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Content saved to transient: ' . $transient_key);
     
     // Schedule Stage 2: Generate title (run immediately as single event)
     wp_schedule_single_event(time() + 2, 'rapidtextai_generate_title', array($transient_key));
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 1: Scheduled title generation job');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Scheduled title generation job');
 }
 
 // Stage 2: Generate title using completion API
 function rapidtextai_generate_title_handler($transient_key) {
     $settings = get_option('rapidtextai_auto_blogging', array());
-    if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 2: Generating title from transient: ' . $transient_key);
     
     // Get content from transient
     $data = get_transient($transient_key);
@@ -899,6 +1164,11 @@ function rapidtextai_generate_title_handler($transient_key) {
         return;
     }
     
+    $campaign_id = isset($data['campaign_id']) ? $data['campaign_id'] : 'default';
+    
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 2: Generating title from transient: ' . $transient_key);
+    
     $content = $data['content'];
     $topic = $data['topic'];
     $settings = $data['settings'];
@@ -907,12 +1177,12 @@ function rapidtextai_generate_title_handler($transient_key) {
     $api_key = get_option('rapidtextai_api_key', '');
     if (empty($api_key)) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: Stage 2: API key not found');
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 2: API key not found');
         delete_transient($transient_key);
         return;
     }
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 2: Requesting title generation for content (' . strlen($content) . ' chars)');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 2: Requesting title generation for content (' . strlen($content) . ' chars)');
     
     // Use completion API to generate title
     $title_data = array(
@@ -941,7 +1211,7 @@ function rapidtextai_generate_title_handler($transient_key) {
     
     if (is_wp_error($response)) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: Stage 2: Title generation failed - ' . $response->get_error_message());
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 2: Title generation failed - ' . $response->get_error_message());
         delete_transient($transient_key);
         return;
     }
@@ -951,7 +1221,7 @@ function rapidtextai_generate_title_handler($transient_key) {
     
     if (empty($result['choices'][0]['message']['content'])) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: Stage 2: No title returned from API');
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 2: No title returned from API');
         delete_transient($transient_key);
         return;
     }
@@ -961,7 +1231,7 @@ function rapidtextai_generate_title_handler($transient_key) {
     // Remove quotes if present
     $title = trim($title, '"\'');
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 2: Generated title: "' . $title . '"');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 2: Generated title: "' . $title . '"');
     
     // Update transient with title
     $data['title'] = $title;
@@ -970,14 +1240,12 @@ function rapidtextai_generate_title_handler($transient_key) {
     // Schedule Stage 3: Create post
     wp_schedule_single_event(time() + 2, 'rapidtextai_create_post', array($transient_key));
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: Stage 2: Scheduled post creation job');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 2: Scheduled post creation job');
 }
 
 // Stage 3: Create post with title and content
 function rapidtextai_create_post_handler($transient_key) {
     $log_settings = get_option('rapidtextai_auto_blogging', array()); 
-    if(!empty($log_settings['enable_logging']))
-    error_log('RapidTextAI: Stage 3: Creating post from transient: ' . $transient_key);
     
     // Get data from transient
     $data = get_transient($transient_key);
@@ -988,12 +1256,17 @@ function rapidtextai_create_post_handler($transient_key) {
         return;
     }
     
+    $campaign_id = isset($data['campaign_id']) ? $data['campaign_id'] : 'default';
+    
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 3: Creating post from transient: ' . $transient_key);
+    
     $content = $data['content'];
     $title = $data['title'];
     $topic = $data['topic'];
     $settings = $data['settings'];
     if(!empty($log_settings['enable_logging']))
-    error_log('RapidTextAI: Stage 3: Creating post with title: "' . $title . '"');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 3: Creating post with title: "' . $title . '"');
     
     // Convert markdown to HTML
     $post_content = rapidtextai_simple_markdown_to_html($content);
@@ -1013,16 +1286,17 @@ function rapidtextai_create_post_handler($transient_key) {
     
     if (is_wp_error($post_id)) {
         if(!empty($log_settings['enable_logging']))
-        error_log('RapidTextAI: Stage 3: Failed to create post - ' . $post_id->get_error_message());
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 3: Failed to create post - ' . $post_id->get_error_message());
         delete_transient($transient_key);
         return;
     }
     if(!empty($log_settings['enable_logging']))
-    error_log('RapidTextAI: Stage 3: Created post ID ' . $post_id);
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 3: Created post ID ' . $post_id);
     
     // Store metadata
     update_post_meta($post_id, '_rapidtextai_topic', $topic);
     update_post_meta($post_id, '_rapidtextai_settings', $settings);
+    update_post_meta($post_id, '_rapidtextai_campaign_id', $campaign_id);
     update_post_meta($post_id, '_rapidtextai_raw_content', $content);
     update_post_meta($post_id, '_rapidtextai_status', 'created');
     update_post_meta($post_id, '_rapidtextai_started', $data['created']);
@@ -1030,27 +1304,33 @@ function rapidtextai_create_post_handler($transient_key) {
     // Delete transient (no longer needed)
     delete_transient($transient_key);
     if(!empty($log_settings['enable_logging']))
-    error_log('RapidTextAI: Stage 3: Post created successfully, scheduling finalization');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 3: Post created successfully, scheduling finalization');
     
     // Schedule Stage 4: Finalize (add images, tags, publish)
     wp_schedule_single_event(time() + 2, 'rapidtextai_finalize_post', array($post_id));
     if(!empty($log_settings['enable_logging']))
-    error_log('RapidTextAI: Stage 3: Scheduled finalization job for post ' . $post_id);
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 3: Scheduled finalization job for post ' . $post_id);
 }
 
 // Stage 4: Finalize post (tags, images, status)
 function rapidtextai_finalize_post_handler($post_id) {
     $log_settings = get_option('rapidtextai_auto_blogging', array());
-    if(!empty($log_settings['enable_logging']))
-    error_log('RapidTextAI: Stage 4: Finalizing post ' . $post_id);
     
     $settings = get_post_meta($post_id, '_rapidtextai_settings', true);
+    $campaign_id = get_post_meta($post_id, '_rapidtextai_campaign_id', true);
+    if (empty($campaign_id)) {
+        $campaign_id = 'default';
+    }
+    
+    if(!empty($log_settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Finalizing post ' . $post_id);
+    
     $raw_content = get_post_meta($post_id, '_rapidtextai_raw_content', true);
     $post = get_post($post_id);
     
     if (empty($settings) || !$post) {
         if(!empty($log_settings['enable_logging']))
-        error_log('RapidTextAI: Stage 4: Missing data for post ' . $post_id);
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Missing data for post ' . $post_id);
         update_post_meta($post_id, '_rapidtextai_status', 'failed');
         return;
     }
@@ -1060,7 +1340,7 @@ function rapidtextai_finalize_post_handler($post_id) {
     // Generate tags if enabled
     if ($settings['generate_tags']) {
         if(!empty($log_settings['enable_logging']))
-        error_log('RapidTextAI: Stage 4: Generating tags for post ' . $post_id);
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Generating tags for post ' . $post_id);
         
         $api_key = get_option('rapidtextai_api_key', '');
         $tag_prompt = "Generate only {$settings['tags_count']} comma-separated tags for this content in content language: " . substr($raw_content, 0, 1000);
@@ -1100,7 +1380,7 @@ function rapidtextai_finalize_post_handler($post_id) {
                 $tags = array_slice($tags, 0, $settings['tags_count']);
                 wp_set_post_tags($post_id, $tags, false);
                 if(!empty($log_settings['enable_logging']))
-                error_log('RapidTextAI: Stage 4: Added ' . count($tags) . ' tags to post ' . $post_id);
+                error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Added ' . count($tags) . ' tags to post ' . $post_id);
             }
         }
     }
@@ -1108,7 +1388,7 @@ function rapidtextai_finalize_post_handler($post_id) {
     // Add images if enabled
     if ($settings['include_images']) {
         if(!empty($log_settings['enable_logging']))
-        error_log('RapidTextAI: Stage 4: Adding images to post ' . $post_id);
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Adding images to post ' . $post_id);
         
         $post_content = $post->post_content;
         preg_match_all('/<h[2-4][^>]*>(.*?)<\/h[2-4]>/i', $post_content, $headings);
@@ -1145,7 +1425,7 @@ function rapidtextai_finalize_post_handler($post_id) {
                     'post_content' => $post_content
                 ));
                 if(!empty($log_settings['enable_logging']))
-                error_log('RapidTextAI: Stage 4: Added ' . $images_added . ' images to post ' . $post_id);
+                error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Added ' . $images_added . ' images to post ' . $post_id);
             }
         }
     }
@@ -1153,7 +1433,7 @@ function rapidtextai_finalize_post_handler($post_id) {
     // Set featured image if enabled
     if (isset($settings['include_featured_image']) && $settings['include_featured_image']) {
         if(!empty($log_settings['enable_logging']))
-        error_log('RapidTextAI: Stage 4: Setting featured image for post ' . $post_id);
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Setting featured image for post ' . $post_id);
         
         $topic = get_post_meta($post_id, '_rapidtextai_topic', true);
         $featured_image_data = rapidtextai_get_featured_image_for_topic($topic);
@@ -1198,7 +1478,7 @@ function rapidtextai_finalize_post_handler($post_id) {
                         wp_update_attachment_metadata($attach_id, $attach_data);
                         set_post_thumbnail($post_id, $attach_id);
                         if(!empty($log_settings['enable_logging']))
-                        error_log('RapidTextAI: Stage 4: Set featured image for post ' . $post_id);
+                        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Set featured image for post ' . $post_id);
                     }
                 }
             }
@@ -1225,7 +1505,7 @@ function rapidtextai_finalize_post_handler($post_id) {
     update_post_meta($post_id, '_rapidtextai_completed', current_time('mysql'));
 
     if(!empty($log_settings['enable_logging'])) {
-        error_log('RapidTextAI: Stage 4: Successfully completed post ' . $post_id . ' - "' . $post->post_title . '"');
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 4: Successfully completed post ' . $post_id . ' - "' . $post->post_title . '"');
     }
 }
 
@@ -1527,16 +1807,36 @@ register_activation_hook(__FILE__, 'rapidtextai_activate_auto_blogging');
 register_deactivation_hook(__FILE__, 'rapidtextai_deactivate_auto_blogging');
 
 function rapidtextai_activate_auto_blogging() {
-    $settings = get_option('rapidtextai_auto_blogging', array());
+    // Run migration
+    rapidtextai_migrate_to_campaigns();
     
-    if (!empty($settings) && !empty($settings['enabled'])) {
+    // Schedule crons for all enabled campaigns
+    $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+    
+    foreach ($campaigns as $campaign_id => $campaign) {
+        if (!empty($campaign['enabled'])) {
+            rapidtextai_schedule_campaign_cron($campaign_id, $campaign);
+        }
+    }
+    
+    // Backward compatibility: also check old settings
+    $old_settings = get_option('rapidtextai_auto_blogging', array());
+    if (!empty($old_settings) && !empty($old_settings['enabled'])) {
         if (!wp_next_scheduled('rapidtextai_auto_blogging_cron')) {
-            wp_schedule_event(time(), $settings['schedule'], 'rapidtextai_auto_blogging_cron');
+            wp_schedule_event(time(), $old_settings['schedule'], 'rapidtextai_auto_blogging_cron');
         }
     }
 }
 
 function rapidtextai_deactivate_auto_blogging() {
+    // Clear all campaign-specific cron jobs
+    $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+    
+    foreach ($campaigns as $campaign_id => $campaign) {
+        wp_clear_scheduled_hook('rapidtextai_auto_blogging_cron_' . $campaign_id);
+    }
+    
+    // Also clear old cron hook for backward compatibility
     wp_clear_scheduled_hook('rapidtextai_auto_blogging_cron');
 }
 
