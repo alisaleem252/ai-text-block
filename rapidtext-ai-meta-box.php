@@ -314,6 +314,8 @@ function rapidtextai_generate_article_stream() {
     curl_setopt_array($ch, [
         CURLOPT_URL => $api_url,
         CURLOPT_POST => true,
+        CURLOPT_SSL_VERIFYPEER => false,
+        CURLOPT_SSL_VERIFYHOST => false,
         CURLOPT_POSTFIELDS => $api_payload,
         CURLOPT_HTTPHEADER => [
             'Content-Type: application/json',
