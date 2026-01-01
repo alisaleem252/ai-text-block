@@ -138,16 +138,19 @@ For detailed terms and privacy, visit the following links:
 3. **Screenshot 6** - RapidTextAI Article Advance Generate
 ![Screenshot 6](screenshot-6.png)
 
-4. **Screenshot 8** - RapidTextAI Auto Blogging
+4. **Screenshot 12** - RapidTextAI Multi-Campaign Auto Blogging
+![Screenshot 12](screenshot-12.png)
+
+5. **Screenshot 8** - RapidTextAI Auto Blogging
 ![Screenshot 8](screenshot-8.png)
 
-5. **Screenshot 9** - RapidTextAI Chatbots
+6. **Screenshot 9** - RapidTextAI Chatbots
 ![Screenshot 9](screenshot-9.png)
 
-6. **Screenshot 10** - RapidTextAI Chatbots Frontend
+7. **Screenshot 10** - RapidTextAI Chatbots Frontend
 ![Screenshot 10](screenshot-10.png)
 
-7. **Screenshot 10** - RapidTextAI Chatbots Frontend Tool
+8. **Screenshot 11** - RapidTextAI Chatbots Frontend Tool
 ![Screenshot 11](screenshot-11.png)
 
 == Frequently Asked Questions ==
