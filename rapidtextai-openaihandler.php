@@ -181,12 +181,30 @@ function rapidtextai_get_tags_ajax_handler() {
     }
     $post_id = isset($_POST['post_id']) ? intval($_POST['post_id']) : 0;
     $number_of_tags = isset($_POST['number_of_tags']) ? intval($_POST['number_of_tags']) : 5;
+    $content = isset($_POST['content']) ? sanitize_textarea_field(wp_unslash($_POST['content'])) : '';
     if ($post_id <= 0) {
         wp_send_json_error(['message' => 'Invalid request.']);
     }
 
     $post = get_post($post_id);
-    $post_content = $post->post_content;
+    // FIX: Use post content if available, otherwise use content from POST
+    $post_content = !empty($post->post_content) ? $post->post_content : $content;
+    
+    // Strip HTML and limit content length
+    $post_content = wp_strip_all_tags($post_content);
+    $post_content = substr($post_content, 0, 3000);
+    
+    // Validate we have content
+    if (empty($post_content) || strlen($post_content) < 50) {
+        wp_send_json_error([
+            'message' => 'No content available to generate tags. Content length: ' . strlen($post_content),
+            'debug' => [
+                'has_post_content' => !empty($post->post_content),
+                'has_ajax_content' => !empty($content),
+                'content_preview' => substr($post_content, 0, 100)
+            ]
+        ]);
+    }
     if (!$post) {
         wp_send_json_error(['message' => 'Post not found.']);
     }

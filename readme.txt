@@ -204,6 +204,28 @@ A: Yes! RapidTextAI offers a Chrome extension for browser-based content generati
 A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
 
 == Changelog ==
+= 3.9.0 =
+* Added real-time API usage tracking dashboard with live stats at top of meta box
+* Visual progress bar with color-coded gradient showing request consumption
+* Auto-refresh usage stats immediately after article generation
+* Smart limit warning system with exact days until monthly reset
+* Automatic post title extraction from first heading (H1/H2/H3)
+* Smart title removal from content to avoid duplication
+* Instant modal closure after content insertion with success notifications
+* Auto-scroll to top after generation for immediate content review
+* LocalStorage integration for form persistence across browser sessions
+* Content Automation Grid with 2×2 layout for streamlined controls
+* Tags & Categories slider to generate 0-10 tags automatically
+* Content Images slider to insert 0-6 contextual images
+* Auto-excerpt toggle for AI-powered excerpt generation
+* Featured Image toggle for automatic featured image setting
+* Step-by-step progress modal with visual indicators for each generation task
+* Improved UI/UX with simplified API usage display
+* Gradient backgrounds and better visual hierarchy
+* Optimized content insertion workflow and editor detection
+* Better error handling and validation throughout generation process
+* Full compatibility with both Classic Editor (TinyMCE) and Gutenberg
+
 
 = 3.8.0 =
 * Added Multi-Campaign Auto Blogging System - Create and manage multiple auto-blogging campaigns with different settings

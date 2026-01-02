@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 3.8.0
+* Version: 3.9.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -28,7 +28,7 @@ function rapidtextai_admin_notice() {
     }
 }
 
-// Show "What's New" notice after update to version 3.8.0
+// Show "What's New" notice after update to version 3.9.0
 add_action('admin_notices', 'rapidtextai_whats_new_notice');
 
 function rapidtextai_whats_new_notice() {
@@ -37,15 +37,15 @@ function rapidtextai_whats_new_notice() {
         return;
     }
     
-    // Check if user has already seen the notice for version 3.8.0
+    // Check if user has already seen the notice for version 3.9.0
     $dismissed_version = get_option('rapidtextai_whats_new_dismissed', '0');
-    if (version_compare($dismissed_version, '3.8.0', '>=')) {
+    if (version_compare($dismissed_version, '3.9.0', '>=')) {
         return;
     }
     
     // Don't show if user just dismissed it in this session
     if (isset($_GET['rapidtextai_dismiss_whats_new']) && $_GET['rapidtextai_dismiss_whats_new'] === '1') {
-        update_option('rapidtextai_whats_new_dismissed', '3.8.0');
+        update_option('rapidtextai_whats_new_dismissed', '3.9.0');
         return;
     }
     
@@ -55,7 +55,7 @@ function rapidtextai_whats_new_notice() {
         <div style="display: flex; align-items: start; gap: 20px;">
             <div style="font-size: 48px; line-height: 1;">🚀</div>
             <div style="flex: 1;">
-                <h2 style="margin: 0 0 15px 0; font-size: 20px;">What's New in RapidTextAI v3.8.0</h2>
+                <h2 style="margin: 0 0 15px 0; font-size: 20px;">What's New in RapidTextAI v3.9.0</h2>
                 
                 <div style="margin-bottom: 15px;">
                     <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2271b1;">🎯 Multi-Campaign Auto Blogging System</h3>
@@ -1864,6 +1864,54 @@ function rapidtextai_get_logs_callback() {
     
     $logs = rapidtextai_read_error_logs();
     wp_send_json_success(array('logs' => $logs));
+}
+// AJAX handler for getting usage data
+add_action('wp_ajax_rapidtextai_get_usage_data', 'rapidtextai_get_usage_data_callback');
+
+function rapidtextai_get_usage_data_callback() {
+    // Verify nonce
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rapidtextai_nonce')) {
+        wp_send_json_error(array('message' => 'Security check failed.'));
+        return;
+    }
+    
+    // Get API key
+    $api_key = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) {
+        wp_send_json_error(array('message' => 'API key not found. Please set up your RapidTextAI authentication.'));
+        return;
+    }
+    
+    // Call the usage API endpoint
+    $api_url = 'https://app.rapidtextai.com/api?gigsixkey=' . urlencode($api_key);
+    
+    $response = wp_remote_get($api_url, array(
+        'timeout' => 30,
+        'sslverify' => false,
+    ));
+    
+    if (is_wp_error($response)) {
+        wp_send_json_error(array('message' => 'Error connecting to RapidTextAI: ' . $response->get_error_message()));
+        return;
+    }
+    
+    $http_code = wp_remote_retrieve_response_code($response);
+    $body = wp_remote_retrieve_body($response);
+    
+    if ($http_code !== 200) {
+        wp_send_json_error(array('message' => 'API request failed with code ' . $http_code));
+        return;
+    }
+    
+    // Decode the response
+    $usage_data = json_decode($body, true);
+    
+    if (!$usage_data) {
+        wp_send_json_error(array('message' => 'Invalid response from API'));
+        return;
+    }
+    
+    wp_send_json_success($usage_data);
 }
 
 function rapidtextai_clear_logs_callback() {
