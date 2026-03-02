@@ -16,6 +16,7 @@ Generate AI-powered articles using GPT-4, GPT-5, Claude, DeepSeek & Grok with au
 
 With **RapidTextAI**, you can:
 - Generate full-length, SEO-optimized articles using multiple AI models
+- Use **Agent Mode** for a 4-step AI pipeline: draft → polish → optimize headings → final assembly
 - Automatically include relevant images in your generated content
 - Create content through an intuitive meta box in your post editor
 - Insert AI content blocks in **Gutenberg**, **WP Bakery**, and **Elementor**
@@ -23,7 +24,9 @@ With **RapidTextAI**, you can:
 - Auto Blogging System Schedule and automate content creation on any topic with customizable frequency
 
 **Key Features**:
-- **Multi-Model AI Article Generation**: Choose between GPT5, GPT4, Claude 3.7, Gemini 2.5, DeepSeek V1, Grok 3.
+- **Multi-Model AI Article Generation**: Choose between GPT5, GPT4, Claude 4.6, Gemini 2.5, DeepSeek V3, Grok 4.
+- **Agent Mode**: 4-step AI pipeline (Draft → Polish → Heading Optimization → Final Assembly) powered by DeepSeek for higher-quality, publication-ready articles.
+- **Writing Mode**: Fast, single-pass generation using your selected model — same great experience as before.
 - **Integrated Image Generation**: Automatically add relevant images to your AI-written articles
 - **Post Editor Meta Box**: Generate complete articles directly in your WordPress post editor
 - **AI Content Blocks**: Insert smaller AI-generated content sections using blocks in your favorite page builder
@@ -188,6 +191,18 @@ A: Yes! Chatbots support external tool integration via API calls. You can config
 **Q: How do I embed a chatbot on my website?**  
 A: Each chatbot generates a unique shortcode like `[rapidtextai_chatbot id="123"]`. You can embed this shortcode in any post, page, or widget area. The chatbot will appear as a floating widget that users can interact with.
 
+**Q: What is Agent Mode in the meta box?**
+A: Agent Mode is an advanced 4-step AI pipeline for generating higher-quality articles. Instead of a single-pass generation, it runs: (1) **Draft Generation** — creates an initial article draft; (2) **Polish & Publish** — removes placeholders and refines the content to be fully publication-ready; (3) **Heading Optimization** — generates specific, descriptive image search queries for each heading; (4) **Final Assembly** — inserts contextually relevant images and loads the finished article into your WordPress editor. All steps use DeepSeek and run automatically.
+
+**Q: How is Agent Mode different from Writing Mode?**
+A: Writing Mode is a fast, single-pass generation using your selected AI model — ideal for quick drafts. Agent Mode runs a multi-step refinement pipeline that produces more polished, complete, and publication-ready content at the cost of approximately 4 API requests.
+
+**Q: How many API requests does Agent Mode use?**
+A: Agent Mode uses approximately 4 requests per article (one per pipeline step). The mode selector shows your current remaining request count so you can decide before starting. A minimum of 4 remaining requests is required to begin.
+
+**Q: Can I see the progress of Agent Mode generation?**
+A: Yes! A modal shows real-time progress for all 4 steps with status indicators (pending, in-progress, completed, error) and live-streamed output from the current step so you can follow along as the AI works.
+
 **Q: Is the Auto Blogging feature safe for SEO?**  
 A: The Auto Blogging feature generates unique, high-quality content using advanced AI models. However, we recommend reviewing generated content before publication and maintaining a balance between AI-generated and human-created content for optimal SEO performance.
 
@@ -204,6 +219,19 @@ A: Yes! RapidTextAI offers a Chrome extension for browser-based content generati
 A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
 
 == Changelog ==
+= 4.0.0 =
+* Added **Agent Mode** to the post editor meta box — a 4-step AI pipeline for higher-quality article generation
+* Agent Mode pipeline: Draft Generation → Polish & Publish → Heading Optimization → Final Assembly
+* All Agent Mode steps powered by DeepSeek via direct API streaming
+* Live step-by-step progress modal showing real-time streamed output for each pipeline stage
+* Horizontal step progress bar in modal with status icons (pending / in-progress / completed / error)
+* Agent Mode uses optimized image search queries generated per-heading for more relevant content images
+* Writing Mode / Agent Mode selector with two-card UI in the meta box
+* Agent Mode card shows estimated request usage (~4) and your remaining request count before you start
+* Pre-flight quota check — graceful alert if fewer than 4 requests remain before pipeline starts
+* Completely redesigned StreamingModal with support for both writing and agent progress display
+* Modal header shows current step name and count (e.g. "Step 2/4 — Polish & Publish") during agent runs
+
 = 3.9.0 =
 * Added real-time API usage tracking dashboard with live stats at top of meta box
 * Visual progress bar with color-coded gradient showing request consumption

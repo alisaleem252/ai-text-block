@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 3.9.0
+* Version: 4.0.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -28,7 +28,7 @@ function rapidtextai_admin_notice() {
     }
 }
 
-// Show "What's New" notice after update to version 3.9.0
+// Show "What's New" notice after update to version 4.0.0
 add_action('admin_notices', 'rapidtextai_whats_new_notice');
 
 function rapidtextai_whats_new_notice() {
@@ -37,49 +37,49 @@ function rapidtextai_whats_new_notice() {
         return;
     }
     
-    // Check if user has already seen the notice for version 3.9.0
+    // Check if user has already seen the notice for version 4.0.0
     $dismissed_version = get_option('rapidtextai_whats_new_dismissed', '0');
-    if (version_compare($dismissed_version, '3.9.0', '>=')) {
+    if (version_compare($dismissed_version, '4.0.0', '>=')) {
         return;
     }
     
     // Don't show if user just dismissed it in this session
     if (isset($_GET['rapidtextai_dismiss_whats_new']) && $_GET['rapidtextai_dismiss_whats_new'] === '1') {
-        update_option('rapidtextai_whats_new_dismissed', '3.9.0');
+        update_option('rapidtextai_whats_new_dismissed', '4.0.0');
         return;
     }
     
     $dismiss_url = add_query_arg('rapidtextai_dismiss_whats_new', '1');
     ?>
-    <div class="notice notice-info is-dismissible rapidtextai-whats-new-notice" style="border-left-color: #2271b1; padding: 20px;">
+    <div class="notice notice-info is-dismissible rapidtextai-whats-new-notice" style="border-left-color: #7c3aed; padding: 20px;">
         <div style="display: flex; align-items: start; gap: 20px;">
-            <div style="font-size: 48px; line-height: 1;">🚀</div>
+            <div style="font-size: 48px; line-height: 1;">🤖</div>
             <div style="flex: 1;">
-                <h2 style="margin: 0 0 15px 0; font-size: 20px;">What's New in RapidTextAI v3.9.0</h2>
-                
+                <h2 style="margin: 0 0 15px 0; font-size: 20px;">What's New in RapidTextAI v4.0.0</h2>
+
                 <div style="margin-bottom: 15px;">
-                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2271b1;">🎯 Multi-Campaign Auto Blogging System</h3>
-                    <p style="margin: 0 0 10px 0;">You can now create and manage <strong>multiple auto-blogging campaigns</strong> with different settings, schedules, and topics!</p>
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #7c3aed;">✨ Agent Mode — Smarter Auto-Blogging</h3>
+                    <p style="margin: 0 0 10px 0;">Auto Blogging now runs a <strong>4-step AI pipeline powered by DeepSeek</strong> to produce higher-quality, publication-ready articles automatically:</p>
                     <ul style="margin: 0 0 10px 0; padding-left: 20px;">
-                        <li><strong>Create Multiple Campaigns</strong> - Each with its own topics, schedule, and AI model</li>
-                        <li><strong>Individual Scheduling</strong> - Set different frequencies (hourly, daily, weekly) per campaign</li>
-                        <li><strong>Easy Management</strong> - Enable/disable campaigns with one click</li>
-                        <li><strong>Campaign Tracking</strong> - See which campaign generated which post</li>
+                        <li><strong>Step 1 — Draft Generation:</strong> Full article draft via streaming</li>
+                        <li><strong>Step 2 — Polish &amp; Publish:</strong> Removes placeholders, ensures professional tone</li>
+                        <li><strong>Step 3 — Heading Optimization:</strong> Generates specific image search queries per heading</li>
+                        <li><strong>Step 4 — Final Assembly:</strong> Inserts contextually relevant images, tags, featured image &amp; publishes</li>
                     </ul>
                 </div>
-                
+
                 <div style="margin-bottom: 15px;">
-                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2271b1;">✨ Improved Topic Generation</h3>
-                    <p style="margin: 0;">The "Improve with AI" feature now generates better-formatted topics with all metadata on a single line for easier management.</p>
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #7c3aed;">🖼 Smarter Image Insertion</h3>
+                    <p style="margin: 0;">Images are now searched using AI-optimized queries per heading instead of raw heading text — resulting in far more relevant visuals in your posts.</p>
                 </div>
-                
+
                 <div style="margin-bottom: 15px;">
-                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #2271b1;">🔄 Automatic Migration</h3>
-                    <p style="margin: 0;">Your existing auto-blogging settings have been automatically migrated to a "Default Campaign" - no action needed!</p>
+                    <h3 style="margin: 0 0 10px 0; font-size: 16px; color: #7c3aed;">📝 Writing Mode / Agent Mode in Meta Box</h3>
+                    <p style="margin: 0;">The post editor meta box now offers the same two-mode selector — choose <strong>Writing Mode</strong> for fast single-pass generation or <strong>Agent Mode</strong> for the full pipeline with live step-by-step progress.</p>
                 </div>
-                
+
                 <div style="margin-top: 20px; padding-top: 15px; border-top: 1px solid #ddd;">
-                    <a href="<?php echo admin_url('admin.php?page=rapidtextai-auto-blogging'); ?>" class="button button-primary" style="margin-right: 10px;">
+                    <a href="<?php echo admin_url('admin.php?page=rapidtextai-auto-blogging'); ?>" class="button button-primary" style="margin-right: 10px; background:#7c3aed; border-color:#7c3aed;">
                         View Auto Blogging Campaigns
                     </a>
                     <a href="<?php echo esc_url($dismiss_url); ?>" class="button button-secondary">
@@ -876,48 +876,48 @@ function rapidtextai_improve_topics_callback() {
 // Schedule the cron job - Main entry point
 add_action('rapidtextai_auto_blogging_cron', 'rapidtextai_generate_auto_blog_post');
 
-// Additional cron hooks for the new workflow
-add_action('rapidtextai_generate_title', 'rapidtextai_generate_title_handler', 10, 1);
-add_action('rapidtextai_create_post', 'rapidtextai_create_post_handler', 10, 1);
-add_action('rapidtextai_finalize_post', 'rapidtextai_finalize_post_handler', 10, 1);
+// Additional cron hooks for the Agent Mode workflow
+add_action('rapidtextai_polish_post',       'rapidtextai_polish_post_handler',       10, 1);
+add_action('rapidtextai_optimize_headings', 'rapidtextai_optimize_headings_handler', 10, 1);
+add_action('rapidtextai_generate_title',    'rapidtextai_generate_title_handler',    10, 1);
+add_action('rapidtextai_create_post',       'rapidtextai_create_post_handler',       10, 1);
+add_action('rapidtextai_finalize_post',     'rapidtextai_finalize_post_handler',     10, 1);
 
 /**
- * Streaming Logic Implementation:
- * 
- * This implementation uses a multi-stage approach with transient storage:
- * 
+ * Agent Mode Auto-Blogging Pipeline:
+ *
  * Stage 1: rapidtextai_generate_auto_blog_post()
- *   - Streams content from completionsarticle-stream endpoint
- *   - Saves raw content to WordPress transient (1 hour expiry)
- *   - Schedules title generation job
- * 
+ *   - Streams draft via completionsarticle-stream using the campaign's selected model
+ *   - Saves raw draft to WordPress transient (2 hour expiry)
+ *   - Schedules Stage 1.5: Polish
+ *
+ * Stage 1.5: rapidtextai_polish_post_handler()
+ *   - Retrieves draft from transient
+ *   - Streams polished version via completions-stream (deepseek-chat)
+ *   - Removes placeholders, ensures publication-ready content
+ *   - Updates transient with polished content
+ *   - Schedules Stage 1.75: Heading Optimization
+ *
+ * Stage 1.75: rapidtextai_optimize_headings_handler()
+ *   - Retrieves polished content from transient
+ *   - Generates JSON map of {heading: optimized_image_search_query} via completions-stream
+ *   - Updates transient with heading_map
+ *   - Schedules Stage 2: Title generation
+ *
  * Stage 2: rapidtextai_generate_title_handler()
- *   - Retrieves content from transient
- *   - Uses completion API to generate SEO-optimized title
- *   - Updates transient with generated title
- *   - Schedules post creation job
- * 
+ *   - Generates SEO-optimized title from polished content
+ *   - Updates transient with title
+ *   - Schedules Stage 3: Create post
+ *
  * Stage 3: rapidtextai_create_post_handler()
- *   - Retrieves title + content from transient
- *   - Converts markdown to HTML
- *   - Creates WordPress post with title and content
- *   - Deletes transient (no longer needed)
- *   - Schedules finalization job
- * 
+ *   - Creates WordPress post from title + polished content
+ *   - Stores heading_map in post meta for Stage 4
+ *   - Deletes transient
+ *   - Schedules Stage 4: Finalize
+ *
  * Stage 4: rapidtextai_finalize_post_handler()
- *   - Generates tags using completion API (if enabled)
- *   - Adds images to content (if enabled)
- *   - Sets featured image (if enabled)
- *   - Updates post status to publish/draft
- *   - Cleanup metadata
- * 
- * Benefits of this approach:
- *   - Content streaming prevents timeout on long articles
- *   - Transient storage is cleaner than post meta for temporary data
- *   - Title generation uses AI with article context (better SEO)
- *   - No draft post created until title is ready
- *   - Each stage is independent and can be retried
- *   - 1-hour transient expiry prevents data buildup
+ *   - Uses heading_map for contextually relevant image queries
+ *   - Generates tags, sets featured image, publishes
  */
 
 /**
@@ -1094,25 +1094,27 @@ function rapidtextai_generate_auto_blog_post($campaign_id = '') {
     if(!empty($settings['enable_logging']))
     error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Starting content streaming for topic: ' . $selected_topic);
     
+    // Stage 1 uses the campaign's chosen model; refinement stages (Polish, Heading Opt.) use deepseek-chat
+    $draft_model = $settings['model'];
+
     // Set up post data for streaming endpoint
     $post_data = array(
-        'model' => $settings['model'],
+        'model' => $draft_model,
         'messages' => array(
             array(
                 'role' => 'user',
-                'content' => "Write a comprehensive article about: " . $selected_topic. "\n\nThe tone should be " . $settings['tone'] . "."
+                'content' => "Write a comprehensive article about: " . $selected_topic . "\n\nThe tone should be " . $settings['tone'] . "."
             )
         ),
-        'chatsession' => 'rapidtextai__'.$settings['model'].'_' . time() . '_' . wp_rand(),
+        'chatsession' => 'rapidtextai_agent_' . $draft_model . '_' . time() . '_' . wp_rand(),
         'stream' => true,
     );
-    
+
     // Use max_completion_tokens for gpt-5, max_tokens for other models
-    if (strpos($settings['model'], 'gpt-5') !== false) {
+    if (strpos($draft_model, 'gpt-5') !== false) {
         $post_data['max_completion_tokens'] = 4000;
         $post_data['reasoning_effort'] = 'minimal';
     } else {
-        // $user_limits_check
         $post_data['max_tokens'] = $user_limits_check['response_code'] == 1 ? null : 4000;
         $post_data['temperature'] = 0.7;
     }
@@ -1120,35 +1122,146 @@ function rapidtextai_generate_auto_blog_post($campaign_id = '') {
     // Streaming API endpoint
     $api_url = "https://app.rapidtextai.com/openai/v1/chat/completionsarticle-stream?gigsixkey=" . urlencode($api_key);
     
-    // Stream the content
+    // Stage 1: Stream the draft
     $content = rapidtextai_stream_content_via_sse($api_url, $post_data);
     
     if ($content === false) {
         if(!empty($settings['enable_logging']))
-        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Streaming failed for topic: ' . $selected_topic);
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1 (Draft): Streaming failed for topic: ' . $selected_topic);
         return;
     }
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Successfully streamed ' . strlen($content) . ' characters');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1 (Draft): Successfully streamed ' . strlen($content) . ' characters');
     
     // Generate unique transient key
     $transient_key = 'rapidtextai_content_' . md5($campaign_id . $selected_topic . time());
     
-    // Save content to transient (expires in 1 hour)
+    // Save draft to transient (expires in 2 hours to allow for all agent stages)
     set_transient($transient_key, array(
-        'content' => $content,
-        'topic' => $selected_topic,
-        'settings' => $settings,
+        'content'     => $content,
+        'topic'       => $selected_topic,
+        'settings'    => $settings,
         'campaign_id' => $campaign_id,
-        'created' => current_time('mysql'),
-    ), HOUR_IN_SECONDS);
+        'created'     => current_time('mysql'),
+    ), 2 * HOUR_IN_SECONDS);
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Content saved to transient: ' . $transient_key);
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1 (Draft): Saved to transient: ' . $transient_key);
     
-    // Schedule Stage 2: Generate title (run immediately as single event)
+    // Schedule Stage 1.5: Polish the draft
+    wp_schedule_single_event(time() + 2, 'rapidtextai_polish_post', array($transient_key));
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1 (Draft): Scheduled polish job');
+}
+
+/**
+ * Helper: Stream a chat completion from the completions-stream endpoint (Agent Mode).
+ * Returns the accumulated content string, or false on failure.
+ */
+function rapidtextai_stream_agent_completion($api_key, array $messages, $log_prefix = '') {
+    $post_data = array(
+        'model'       => 'deepseek-chat',
+        'messages'    => $messages,
+        'stream'      => true,
+        'chatsession' => 'rapidtextai_agent_deepseek_' . time() . '_' . wp_rand(),
+        'max_tokens'  => 4000,
+        'temperature' => 0.7,
+    );
+    $api_url = 'https://app.rapidtextai.com/openai/v1/chat/completions-stream?gigsixkey=' . urlencode($api_key);
+    $result = rapidtextai_stream_content_via_sse($api_url, $post_data);
+    if ($result === false && !empty($log_prefix)) {
+        error_log($log_prefix . ': completions-stream call failed.');
+    }
+    return $result;
+}
+
+// Stage 1.5: Polish the draft
+function rapidtextai_polish_post_handler($transient_key) {
+    $data = get_transient($transient_key);
+    if ($data === false || empty($data['content'])) {
+        error_log('RapidTextAI: Stage 1.5 (Polish): Transient missing or expired: ' . $transient_key);
+        return;
+    }
+
+    $campaign_id = isset($data['campaign_id']) ? $data['campaign_id'] : 'default';
+    $settings    = $data['settings'];
+    $api_key     = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) { return; }
+
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish): Polishing draft (' . strlen($data['content']) . ' chars)');
+
+    $polish_prompt = "You are a professional blog editor. Polish the following article draft to be fully publication-ready for a WordPress blog. Remove any placeholder text like [INSERT ...], [ADD ...], [YOUR ...], etc. Ensure all sections are complete, professional, and reader-ready. Preserve all headings, structure, and Markdown formatting.\n\nArticle:\n" . $data['content'];
+
+    $polished = rapidtextai_stream_agent_completion(
+        $api_key,
+        array(array('role' => 'user', 'content' => $polish_prompt)),
+        'RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish)'
+    );
+
+    if ($polished === false) {
+        // Fall back to original draft if polish fails
+        $polished = $data['content'];
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish): Failed, using original draft.');
+    } else {
+        if(!empty($settings['enable_logging']))
+        error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish): Done (' . strlen($polished) . ' chars)');
+    }
+
+    $data['content'] = $polished;
+    set_transient($transient_key, $data, 2 * HOUR_IN_SECONDS);
+
+    // Schedule Stage 1.75: Optimize headings
+    wp_schedule_single_event(time() + 2, 'rapidtextai_optimize_headings', array($transient_key));
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish): Scheduled heading optimization job');
+}
+
+// Stage 1.75: Generate optimized image search queries for each heading
+function rapidtextai_optimize_headings_handler($transient_key) {
+    $data = get_transient($transient_key);
+    if ($data === false || empty($data['content'])) {
+        error_log('RapidTextAI: Stage 1.75 (Headings): Transient missing or expired: ' . $transient_key);
+        return;
+    }
+
+    $campaign_id = isset($data['campaign_id']) ? $data['campaign_id'] : 'default';
+    $settings    = $data['settings'];
+    $api_key     = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) { return; }
+
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.75 (Headings): Generating heading image queries');
+
+    $heading_prompt = 'Extract every H2, H3, and H4 heading from the article below. For each heading, generate a concise, highly specific image search query (2-5 words, visual and descriptive). Return ONLY a valid JSON object in the format {"heading text": "image search query", ...}. Skip headings that are exactly "Conclusion", "Introduction", or "Summary".' . "\n\nArticle:\n" . $data['content'];
+
+    $heading_map_raw = rapidtextai_stream_agent_completion(
+        $api_key,
+        array(array('role' => 'user', 'content' => $heading_prompt)),
+        'RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.75 (Headings)'
+    );
+
+    $heading_map = array();
+    if ($heading_map_raw !== false) {
+        preg_match('/\{[\s\S]*\}/', $heading_map_raw, $json_match);
+        if (!empty($json_match[0])) {
+            $decoded = json_decode($json_match[0], true);
+            if (is_array($decoded)) {
+                $heading_map = $decoded;
+            }
+        }
+    }
+
+    if(!empty($settings['enable_logging']))
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.75 (Headings): Generated map with ' . count($heading_map) . ' entries');
+
+    $data['heading_map'] = $heading_map;
+    set_transient($transient_key, $data, 2 * HOUR_IN_SECONDS);
+
+    // Schedule Stage 2: Generate title
     wp_schedule_single_event(time() + 2, 'rapidtextai_generate_title', array($transient_key));
     if(!empty($settings['enable_logging']))
-    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1: Scheduled title generation job');
+    error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.75 (Headings): Scheduled title generation job');
 }
 
 // Stage 2: Generate title using completion API
@@ -1301,6 +1414,12 @@ function rapidtextai_create_post_handler($transient_key) {
     update_post_meta($post_id, '_rapidtextai_status', 'created');
     update_post_meta($post_id, '_rapidtextai_started', $data['created']);
     
+    // Store heading_map in post meta so Stage 4 can use optimized image queries
+    $heading_map = isset($data['heading_map']) ? $data['heading_map'] : array();
+    if (!empty($heading_map)) {
+        update_post_meta($post_id, '_rapidtextai_heading_map', $heading_map);
+    }
+
     // Delete transient (no longer needed)
     delete_transient($transient_key);
     if(!empty($log_settings['enable_logging']))
@@ -1394,13 +1513,22 @@ function rapidtextai_finalize_post_handler($post_id) {
         preg_match_all('/<h[2-4][^>]*>(.*?)<\/h[2-4]>/i', $post_content, $headings);
         $images_added = 0;
         
+        // Retrieve heading map from Agent Mode pipeline (optimized image queries)
+        $heading_map = get_post_meta($post_id, '_rapidtextai_heading_map', true);
+        if (!is_array($heading_map)) {
+            $heading_map = array();
+        }
+        delete_post_meta($post_id, '_rapidtextai_heading_map');
+
         if (!empty($headings[1])) {
             foreach ($headings[1] as $heading) {
-                if (stripos($heading, 'conclusion') !== false) {
+                if (stripos($heading, 'conclusion') !== false || stripos($heading, 'introduction') !== false || stripos($heading, 'summary') !== false) {
                     continue;
                 }
                 
-                $image_data = rapidtextai_get_image_for_heading($heading);
+                // Use optimized query from heading map if available, otherwise use raw heading
+                $search_query = !empty($heading_map[$heading]) ? $heading_map[$heading] : $heading;
+                $image_data = rapidtextai_get_image_for_heading($search_query);
                 
                 if ($image_data) {
                     $images_added++;
