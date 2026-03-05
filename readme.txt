@@ -222,12 +222,12 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 = 4.0.0 =
 * Added **Agent Mode** to the post editor meta box — a 4-step AI pipeline for higher-quality article generation
 * Agent Mode pipeline: Draft Generation → Polish & Publish → Heading Optimization → Final Assembly
-* All Agent Mode steps powered by DeepSeek via direct API streaming
+* All Agent Mode steps via direct API streaming
 * Live step-by-step progress modal showing real-time streamed output for each pipeline stage
 * Horizontal step progress bar in modal with status icons (pending / in-progress / completed / error)
 * Agent Mode uses optimized image search queries generated per-heading for more relevant content images
 * Writing Mode / Agent Mode selector with two-card UI in the meta box
-* Agent Mode card shows estimated request usage (~4) and your remaining request count before you start
+* Agent Mode card shows estimated request usage (~4-6) and your remaining request count before you start
 * Pre-flight quota check — graceful alert if fewer than 4 requests remain before pipeline starts
 * Completely redesigned StreamingModal with support for both writing and agent progress display
 * Modal header shows current step name and count (e.g. "Step 2/4 — Polish & Publish") during agent runs
