@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 4.0.0
+* Version: 4.1.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -875,6 +875,23 @@ function rapidtextai_improve_topics_callback() {
 
 // Schedule the cron job - Main entry point
 add_action('rapidtextai_auto_blogging_cron', 'rapidtextai_generate_auto_blog_post');
+
+// Register action hooks for all campaign-specific cron hooks on every page load
+// This is required because dynamic add_action() calls inside rapidtextai_schedule_campaign_cron()
+// only run when saving campaigns, not when WP-Cron fires the hook.
+add_action('plugins_loaded', 'rapidtextai_register_campaign_cron_hooks');
+function rapidtextai_register_campaign_cron_hooks() {
+    $campaigns = get_option('rapidtextai_auto_blogging_campaigns', array());
+    if (empty($campaigns)) {
+        return;
+    }
+    foreach ($campaigns as $campaign_id => $campaign) {
+        $hook_name = 'rapidtextai_auto_blogging_cron_' . $campaign_id;
+        add_action($hook_name, function() use ($campaign_id) {
+            rapidtextai_generate_auto_blog_post($campaign_id);
+        });
+    }
+}
 
 // Cron 2: Polish + Headings + Title + Create post
 add_action('rapidtextai_refine_and_publish', 'rapidtextai_refine_and_publish_handler', 10, 1);
