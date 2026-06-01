@@ -12,7 +12,7 @@ Generate AI-powered articles using GPT-4, GPT-5, Claude, DeepSeek & Grok with au
 
 == Description ==
 
-**RapidTextAI** is a powerful AI article generation plugin for WordPress that transforms how you create content. Leveraging cutting-edge models including **GPT-5**, **Gemini 2.5**, **DeepSeek 3.1**, and **Grok**, this plugin enables you to generate complete, publication-ready articles with just a few clicks.
+**RapidTextAI** is a powerful AI article generation plugin for WordPress that transforms how you create content. Leveraging cutting-edge models including **GPT**, **Claude**, **Gemini**, **DeepSeek**, and **Grok**, this plugin enables you to generate complete, publication-ready articles with just a few clicks.
 
 With **RapidTextAI**, you can:
 - Generate full-length, SEO-optimized articles using multiple AI models
@@ -24,7 +24,7 @@ With **RapidTextAI**, you can:
 - Auto Blogging System Schedule and automate content creation on any topic with customizable frequency
 
 **Key Features**:
-- **Multi-Model AI Article Generation**: Choose between GPT5, GPT4, Claude 4.6, Gemini 2.5, DeepSeek V3, Grok 4.
+- **Multi-Model AI Article Generation**: Choose between GPT, Claude, Gemini, DeepSeek, Grok, GLM.
 - **Agent Mode**: 4-step AI pipeline (Draft → Polish → Heading Optimization → Final Assembly) powered by DeepSeek for higher-quality, publication-ready articles.
 - **Writing Mode**: Fast, single-pass generation using your selected model — same great experience as before.
 - **Integrated Image Generation**: Automatically add relevant images to your AI-written articles
