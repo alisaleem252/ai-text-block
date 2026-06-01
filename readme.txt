@@ -36,17 +36,12 @@ With **RapidTextAI**, you can:
 
 
 **Models**:
-- GPT 3.5 (OpenAI)
-- GPT 4 (OpenAI)
-- GPT 5 (OpenAI)
-- Gemini 2.0 (Google)
-- Gemini 2.5 (Google)
-- Deepseek v 3 (DeepSeek)
-- Deepseek R 3 (DeepSeek)
-- GLM 4.5 (ZhipuAI)
-- Grok 2 (xAI)
-- Grok 3 (xAI)
-- Claude 3.7 (Anthropic)
+- GPT (OpenAI)
+- Gemini (Google)
+- Deepseek (DeepSeek)
+- GLM (ZhipuAI)
+- Grok (xAI)
+- Claude (Anthropic)
 
 **AI Chatbots**:
 Create intelligent, customizable AI-powered chat widgets for your website with RapidTextAI's advanced chatbot system. Build sophisticated conversational experiences that can handle customer support, lead generation, product inquiries, and more.

@@ -5,27 +5,9 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-// Add meta box to post edit screen
-function rapidtextai_add_meta_box() {
-    add_meta_box(
-        'rapidtextai_meta_box',
-        __('RapidTextAI', 'rapidtextai'),
-        'rapidtextai_meta_box_callback',
-        ['post', 'page'], // You can add custom post types here
-        'normal',
-        'high'
-    );
-}
+// Meta box replaced by modal — no meta box registered
+function rapidtextai_add_meta_box() {}
 add_action( 'add_meta_boxes', 'rapidtextai_add_meta_box' );
-
-// Meta box callback function
-function rapidtextai_meta_box_callback( $post ) {
-    ?>
-    <script type="module" crossorigin src="<?php echo RAPIDTEXTAI_PLUGIN_URL . '/assets/js/metabox.js' ?>"></script>
-    <link rel="stylesheet" crossorigin href="<?php echo RAPIDTEXTAI_PLUGIN_URL . '/assets/css/metabox.css' ?>">
-    <div id="rapidtextai-root"></div>
-    <?php
-}
 
 // Enqueue scripts
 function rapidtextai_metabox_enqueue_scripts( $hook ) {
@@ -52,8 +34,124 @@ function rapidtextai_metabox_enqueue_scripts( $hook ) {
         'nonce'    => wp_create_nonce( 'rapidtextai_nonce' ),
         'api_key'  => get_option('rapidtextai_api_key', ''),
     ) );
+
+    // Enqueue the modal trigger button script (follows same pattern as featured.js)
+    wp_enqueue_script(
+        'rapidtextai_generate_modal',
+        plugin_dir_url( __FILE__ ) . 'assets/js/generate-modal.js',
+        array( 'jquery' ),
+        filemtime( plugin_dir_path( __FILE__ ) . 'assets/js/generate-modal.js' ),
+        true
+    );
+    wp_localize_script( 'rapidtextai_generate_modal', 'rapidtextai_modal', array(
+        'icon_url' => 'https://app.rapidtextai.com/assets/images/fav.png?v=1.1',
+    ) );
+
+    // Render the Generate Article modal HTML + CSS in the footer
+    add_action( 'admin_footer', 'rapidtextai_render_generate_modal' );
 }
 add_action( 'admin_enqueue_scripts', 'rapidtextai_metabox_enqueue_scripts' );
+
+/**
+ * Outputs the Generate Article modal overlay and injects the trigger button
+ * next to the Featured Image meta box in the post editor.
+ */
+function rapidtextai_render_generate_modal() {
+    $metabox_js_url  = esc_url( RAPIDTEXTAI_PLUGIN_URL . 'assets/js/metabox.js' );
+    $metabox_css_url = esc_url( RAPIDTEXTAI_PLUGIN_URL . 'assets/css/metabox.css' );
+    $icon_url        = 'https://app.rapidtextai.com/assets/images/fav.png?v=1.1';
+    ?>
+    <!-- RapidTextAI Generate Article Modal -->
+    <div id="rapidtextai-modal-overlay" aria-modal="true" role="dialog" aria-label="<?php esc_attr_e( 'Generate Article', 'rapidtextai' ); ?>">
+        <div id="rapidtextai-modal-wrap">
+            <div id="rapidtextai-modal-header">
+                <span id="rapidtextai-modal-title">
+                    <img src="<?php echo esc_url( $icon_url ); ?>" alt="" width="20" height="20">
+                    <?php esc_html_e( 'Generate Article', 'rapidtextai' ); ?>
+                </span>
+                <button id="rapidtextai-modal-close" type="button" aria-label="<?php esc_attr_e( 'Close', 'rapidtextai' ); ?>">&times;</button>
+            </div>
+            <div id="rapidtextai-modal-body">
+                <link rel="stylesheet" crossorigin href="<?php echo $metabox_css_url; ?>">
+                <div id="rapidtextai-root"></div>
+            </div>
+        </div>
+    </div>
+    <script type="module" crossorigin src="<?php echo $metabox_js_url; ?>"></script>
+
+    <style>
+    /* Generate Article trigger button */
+    .rapidtextai-generate-article-btn {
+        display: flex !important;
+        align-items: center !important;
+        gap: 6px !important;
+    }
+    .rapidtextai-generate-article-btn img {
+        border-radius: 2px;
+        flex-shrink: 0;
+    }
+    /* Modal */
+    #rapidtextai-modal-overlay {
+        display: none;
+        position: fixed;
+        inset: 0;
+        background: rgba(0,0,0,.55);
+        z-index: 100000;
+        align-items: center;
+        justify-content: center;
+    }
+    #rapidtextai-modal-overlay.rtai-open {
+        display: flex;
+    }
+    #rapidtextai-modal-wrap {
+        background: #fff;
+        border-radius: 8px;
+        width: 92%;
+        max-width: 900px;
+        max-height: 90vh;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 8px 40px rgba(0,0,0,.3);
+        overflow: hidden;
+    }
+    #rapidtextai-modal-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        border-bottom: 1px solid #ddd;
+        background: #f8f8f8;
+        font-size: 15px;
+        font-weight: 600;
+        flex-shrink: 0;
+    }
+    #rapidtextai-modal-title {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+    #rapidtextai-modal-title img {
+        border-radius: 3px;
+    }
+    #rapidtextai-modal-close {
+        background: none;
+        border: none;
+        font-size: 24px;
+        line-height: 1;
+        cursor: pointer;
+        color: #666;
+        padding: 0 4px;
+        transition: color .15s;
+    }
+    #rapidtextai-modal-close:hover { color: #000; }
+    #rapidtextai-modal-body {
+        padding: 20px;
+        overflow-y: auto;
+        flex: 1;
+    }
+    </style>
+    <?php
+}
 
 // AJAX handler
 function rapidtextai_generate_article($return = false) {
