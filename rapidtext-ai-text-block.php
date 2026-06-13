@@ -2304,3 +2304,62 @@ function rapidtextai_clear_error_logs() {
     
     return false;
 }
+
+/**
+ * Deactivation Feedback — asks user for reason when deactivating the plugin.
+ */
+add_action('admin_enqueue_scripts', 'rapidtextai_enqueue_deactivate_feedback');
+function rapidtextai_enqueue_deactivate_feedback($hook) {
+    if ($hook !== 'plugins.php') return;
+    wp_enqueue_style(
+        'rapidtextai-deactivate-feedback',
+        RAPIDTEXTAI_PLUGIN_URL . 'assets/css/deactivate-feedback.css',
+        array(),
+        '4.2.0'
+    );
+    wp_enqueue_script(
+        'rapidtextai-deactivate-feedback',
+        RAPIDTEXTAI_PLUGIN_URL . 'assets/js/deactivate-feedback.js',
+        array('jquery'),
+        '4.2.0',
+        true
+    );
+    wp_localize_script('rapidtextai-deactivate-feedback', 'rapidtextai_deactivate', array(
+        'ajaxurl' => admin_url('admin-ajax.php'),
+        'nonce'   => wp_create_nonce('rapidtextai_deactivate_feedback'),
+    ));
+}
+
+add_action('wp_ajax_rapidtextai_deactivate_feedback', 'rapidtextai_deactivate_feedback_handler');
+function rapidtextai_deactivate_feedback_handler() {
+    if (!isset($_POST['nonce']) || !wp_verify_nonce($_POST['nonce'], 'rapidtextai_deactivate_feedback')) {
+        wp_send_json_error(array('message' => 'Security check failed.'));
+    }
+
+    $reason       = isset($_POST['reason'])       ? sanitize_text_field($_POST['reason'])       : 'unspecified';
+    $user_message = isset($_POST['user_message']) ? sanitize_textarea_field($_POST['user_message']) : $reason;
+
+    $api_key = get_option('rapidtextai_api_key', '');
+    if (empty($api_key)) {
+        $api_key = '0';
+    }
+
+    $report_url = 'https://app.rapidtextai.com/api';
+    $report_url = add_query_arg(array(
+        'gigsixkey'    => urlencode($api_key),
+        'action'       => 'report',
+        'message'      => urlencode('[Plugin Deactivation] Reason: ' . $reason),
+        'user_message' => urlencode($user_message),
+    ), $report_url);
+
+    $response = wp_remote_get($report_url, array(
+        'timeout'   => 10,
+        'sslverify' => false,
+    ));
+
+    if (is_wp_error($response)) {
+        wp_send_json_success(array('message' => 'Feedback recorded locally (API unreachable).'));
+    }
+
+    wp_send_json_success(array('message' => 'Feedback sent. Thank you!'));
+}

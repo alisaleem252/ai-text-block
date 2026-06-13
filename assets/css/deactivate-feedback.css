@@ -1,0 +1,158 @@
+/* RapidTextAI Deactivation Feedback Modal */
+.rapidtextai-deactivate-modal-overlay {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 100000;
+    justify-content: center;
+    align-items: center;
+}
+.rapidtextai-deactivate-modal-overlay.active {
+    display: flex;
+}
+.rapidtextai-deactivate-modal {
+    background: #fff;
+    border-radius: 8px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+    width: 100%;
+    max-width: 480px;
+    padding: 0;
+    overflow: hidden;
+    animation: rapidtextai-modal-in 0.25s ease-out;
+}
+@keyframes rapidtextai-modal-in {
+    from { opacity: 0; transform: translateY(-20px) scale(0.96); }
+    to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+.rapidtextai-deactivate-modal-header {
+    padding: 24px 28px 16px;
+    border-bottom: 1px solid #eee;
+}
+.rapidtextai-deactivate-modal-header h2 {
+    margin: 0;
+    font-size: 18px;
+    font-weight: 600;
+    color: #1e1e1e;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.rapidtextai-deactivate-modal-header p {
+    margin: 8px 0 0;
+    font-size: 13px;
+    color: #666;
+}
+.rapidtextai-deactivate-modal-body {
+    padding: 20px 28px;
+}
+.rapidtextai-deactivate-reasons {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+}
+.rapidtextai-deactivate-reasons li {
+    margin-bottom: 10px;
+}
+.rapidtextai-deactivate-reasons label {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 14px;
+    color: #333;
+    cursor: pointer;
+    padding: 8px 12px;
+    border-radius: 6px;
+    border: 1px solid #e0e0e0;
+    transition: all 0.15s ease;
+}
+.rapidtextai-deactivate-reasons label:hover {
+    border-color: #7c3aed;
+    background: #f8f6ff;
+}
+.rapidtextai-deactivate-reasons input[type="radio"] {
+    accent-color: #7c3aed;
+    margin: 0;
+    width: 16px;
+    height: 16px;
+}
+.rapidtextai-deactivate-reasons input[type="radio"]:checked + span {
+    font-weight: 500;
+}
+.rapidtextai-deactivate-reasons label:has(input:checked) {
+    border-color: #7c3aed;
+    background: #f5f3ff;
+}
+.rapidtextai-deactivate-custom-reason {
+    margin-top: 14px;
+}
+.rapidtextai-deactivate-custom-reason textarea {
+    width: 100%;
+    min-height: 70px;
+    padding: 10px 12px;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 13px;
+    font-family: inherit;
+    resize: vertical;
+    box-sizing: border-box;
+}
+.rapidtextai-deactivate-custom-reason textarea:focus {
+    border-color: #7c3aed;
+    box-shadow: 0 0 0 2px rgba(124, 58, 237, 0.15);
+    outline: none;
+}
+.rapidtextai-deactivate-modal-footer {
+    padding: 16px 28px 24px;
+    display: flex;
+    justify-content: flex-end;
+    gap: 10px;
+}
+.rapidtextai-deactivate-modal-footer button {
+    padding: 8px 20px;
+    border-radius: 6px;
+    font-size: 14px;
+    cursor: pointer;
+    border: none;
+    font-weight: 500;
+    transition: all 0.15s ease;
+}
+.rapidtextai-btn-skip {
+    background: #f0f0f0;
+    color: #555;
+}
+.rapidtextai-btn-skip:hover {
+    background: #e0e0e0;
+}
+.rapidtextai-btn-submit {
+    background: #7c3aed;
+    color: #fff;
+}
+.rapidtextai-btn-submit:hover {
+    background: #6d28d9;
+}
+.rapidtextai-btn-submit:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+.rapidtextai-deactivate-thanks {
+    display: none;
+    text-align: center;
+    padding: 30px 28px;
+}
+.rapidtextai-deactivate-thanks.active {
+    display: block;
+}
+.rapidtextai-deactivate-thanks h3 {
+    margin: 0 0 8px;
+    font-size: 18px;
+    color: #1e1e1e;
+}
+.rapidtextai-deactivate-thanks p {
+    margin: 0;
+    color: #666;
+    font-size: 14px;
+}
