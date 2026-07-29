@@ -84,7 +84,7 @@
                                 <select name="rapidtextai_model" class="rapidtextai-select">
                                     <option value="gemini-2.0-flash" <?php selected($settings['model'], 'gemini-2.0-flash'); ?>><?php esc_html_e('Gemini 2.0 (Google)', 'rapidtextai'); ?></option>
                                     <option value="gemini-2.5-flash" <?php selected($settings['model'], 'gemini-2.5-flash'); ?>><?php esc_html_e('Gemini 2.5 (Google)', 'rapidtextai'); ?></option>
-                                    <option value="deepseek-chat" <?php selected($settings['model'], 'deepseek-chat'); ?>><?php esc_html_e('DeepSeek 3.1 (DeepSeek)', 'rapidtextai'); ?></option>
+                                    <option value="deepseek-v4-flash" <?php selected($settings['model'], 'deepseek-v4-flash'); ?>><?php esc_html_e('DeepSeek 3.1 (DeepSeek)', 'rapidtextai'); ?></option>
                                     <option value="deepseek-v4-flash" <?php selected($settings['model'], 'deepseek-v4-flash'); ?>><?php esc_html_e('DeepSeek 4.0 Flash (DeepSeek)', 'rapidtextai'); ?></option>
                                     <option value="deepseek-v4-pro" <?php selected($settings['model'], 'deepseek-v4-pro'); ?>><?php esc_html_e('DeepSeek 4.0 Pro (DeepSeek)', 'rapidtextai'); ?></option>
                                     <option value="claude-3-7-sonnet-latest" <?php selected($settings['model'], 'claude-3-7-sonnet-latest'); ?>><?php esc_html_e('Claude 3.7 (Anthropic)', 'rapidtextai'); ?></option>

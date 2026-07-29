@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 4.2.0
+* Version: 4.2.1
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -906,7 +906,7 @@ add_action('rapidtextai_finalize_post',      'rapidtextai_finalize_post_handler'
  *   → saves draft to transient, schedules Cron 2
  *
  * Cron 2 — rapidtextai_refine_and_publish_handler()
- *   Stage 1.5 - Polish:   Refines draft via completions-stream (deepseek-chat)
+ *   Stage 1.5 - Polish:   Refines draft via completions-stream (deepseek-v4-flash)
  *   Stage 1.75- Headings: Builds {heading → image query} map via completions-stream
  *   Stage 2   - Title:    Generates SEO title via completions API
  *   Stage 3   - Create:   Inserts WordPress post (draft), stores meta
@@ -1148,10 +1148,13 @@ function rapidtextai_refine_and_publish_handler($transient_key) {
     if (!empty($settings['enable_logging']))
         error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish): Polishing draft');
 
-    $polish_prompt = "You are a professional blog editor. Polish the following article draft to be fully publication-ready for a WordPress blog. Remove any placeholder text like [INSERT ...], [ADD ...], [YOUR ...], etc. Ensure all sections are complete, professional, and reader-ready. Preserve all headings, structure, and Markdown formatting.\n\nArticle:\n" . $content;
+    $polish_prompt = "Polish the following article draft to be fully publication-ready for a WordPress blog. Remove any placeholder text like [INSERT ...], [ADD ...], [YOUR ...], etc. Ensure all sections are complete, professional, and reader-ready. Preserve all headings, structure, and Markdown formatting. Output ONLY the polished article. Do not include any introductory sentences, explanations, summaries, or separators before or after the article.\n\nArticle:\n" . $content;
     $polished = rapidtextai_stream_agent_completion(
         $api_key,
-        array(array('role' => 'user', 'content' => $polish_prompt)),
+        array(
+            array('role' => 'system', 'content' => 'You are a professional blog editor. Output ONLY the polished article content. Never include any preamble, commentary, meta-notes, or separators like "---". Do not explain what you did. Return the article text and nothing else.'),
+            array('role' => 'user', 'content' => $polish_prompt)
+        ),
         'RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish)'
     );
     if ($polished !== false) {
@@ -1256,7 +1259,7 @@ function rapidtextai_refine_and_publish_handler($transient_key) {
  */
 function rapidtextai_stream_agent_completion($api_key, array $messages, $log_prefix = '') {
     $post_data = array(
-        'model'       => 'deepseek-chat',
+        'model'       => 'deepseek-v4-flash',
         'messages'    => $messages,
         'stream'      => true,
         'chatsession' => 'agent_deepseek_' . time() . '_' . wp_rand(),
@@ -1287,11 +1290,14 @@ function rapidtextai_polish_post_handler($transient_key) {
     if(!empty($settings['enable_logging']))
     error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish): Polishing draft (' . strlen($data['content']) . ' chars)');
 
-    $polish_prompt = "You are a professional blog editor. Polish the following article draft to be fully publication-ready for a WordPress blog. Remove any placeholder text like [INSERT ...], [ADD ...], [YOUR ...], etc. Ensure all sections are complete, professional, and reader-ready. Preserve all headings, structure, and Markdown formatting.\n\nArticle:\n" . $data['content'];
+    $polish_prompt = "Polish the following article draft to be fully publication-ready for a WordPress blog. Remove any placeholder text like [INSERT ...], [ADD ...], [YOUR ...], etc. Ensure all sections are complete, professional, and reader-ready. Preserve all headings, structure, and Markdown formatting. Output ONLY the polished article. Do not include any introductory sentences, explanations, summaries, or separators before or after the article.\n\nArticle:\n" . $data['content'];
 
     $polished = rapidtextai_stream_agent_completion(
         $api_key,
-        array(array('role' => 'user', 'content' => $polish_prompt)),
+        array(
+            array('role' => 'system', 'content' => 'You are a professional blog editor. Output only the polished article content with absolutely no commentary, explanations, preamble, or closing remarks. Do not say things like "Here is the polished version" or "I have made the following changes". Return only the final article text, ready to publish.'),
+            array('role' => 'user', 'content' => $polish_prompt),
+        ),
         'RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish)'
     );
 
@@ -1303,6 +1309,16 @@ function rapidtextai_polish_post_handler($transient_key) {
     } else {
         if(!empty($settings['enable_logging']))
         error_log('RapidTextAI: [Campaign: ' . $campaign_id . '] Stage 1.5 (Polish): Done (' . strlen($polished) . ' chars)');
+    }
+
+    // Remove any content up to and including a leading "---" separator (e.g. YAML front matter)
+    if (preg_match('/^.*?---\s*\n(.*)/s', $polished, $matches)) {
+        $polished = trim($matches[1]);
+    }
+
+    // Remove any preamble before the first Markdown heading (e.g. "Here is the polished version:\n\n# Title")
+    if (preg_match('/(#{1,6}\s.+)/s', $polished, $matches)) {
+        $polished = trim($matches[1]);
     }
 
     $data['content'] = $polished;
