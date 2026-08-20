@@ -1,6 +1,6 @@
-=== AI Content Writer & Auto Post Generator for WordPress by RapidTextAI ===
+=== AI Content Writer & Auto Blogging for WordPress ===
 Contributors: zinger252  
-Tags: ai content generator, gpt-4, article writer, content automation, wordpress ai
+Tags: ai content generator, ai writer, ai article writer, ai content, auto blogging, content automation, ai blog writer, ai post generator, wordpress ai, gpt, ai writing, article generator
 Requires at least: 6.0  
 Tested up to: 6.9  
 Requires PHP: 7.0  
@@ -8,16 +8,22 @@ Stable tag: trunk
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
-Generate AI-powered articles using GPT-4, GPT-5, Claude, DeepSeek & Grok with automatic images for WordPress.
-
-**What's New in 4.5:**
-- **Modern React dashboard** — the Settings, Auto Blogging, and AI Chatbots pages have been rebuilt as a fast, interactive interface.
-- **AI Campaign Assistant** — a guided AI chat (right-side dock on the Auto Blogging page) that reads your site's SEO settings and content, then helps you plan topics, keywords, audience, and tone — and creates a new campaign or updates an existing one in one click.
-- **Centered toast notifications** — success and error alerts with icons, headings, and a one-click OK action.
+Generate SEO-ready WordPress articles with AI — titles, long-form content, images, categories, tags, and excerpts — then schedule them to publish automatically. **Free plan: 10 AI-generated articles per month.**
 
 == Description ==
 
-**RapidTextAI** is a powerful AI article generation plugin for WordPress that transforms how you create content. Leveraging cutting-edge models including **GPT**, **Claude**, **Gemini**, **DeepSeek**, and **Grok**, this plugin enables you to generate complete, publication-ready articles with just a few clicks.
+**Generate complete SEO articles directly inside WordPress.** RapidTextAI creates titles, long-form content, images, categories, tags, and excerpts with AI, then schedules posts to publish automatically.
+
+**Who it's for:** Bloggers, marketers, agencies, and site owners who want consistent, SEO-ready content without writing every article by hand.
+
+**Why install it:** Turn any topic into a published, search-optimized post in minutes — writing, images, categories, tags, excerpts, and scheduling in one place, powered by GPT, Claude, Gemini, DeepSeek, and Grok.
+
+**Is it free?** Yes — the Free plan includes **10 AI-generated articles per month**. Paid plans start at $10/month.
+
+**What's New in 4.5:**
+- **Modern React dashboard** — Settings, Auto Blogging, and AI Chatbots rebuilt as a fast, interactive interface.
+- **AI Campaign Assistant** — a guided AI chat (right-side dock) that reads your site's SEO settings and content, then helps you plan topics, keywords, audience, and tone — and creates or updates a campaign in one click.
+- **Centered toast notifications** — success and error alerts with icons, headings, and a one-click OK action.
 
 With **RapidTextAI**, you can:
 - Generate full-length, SEO-optimized articles using multiple AI models
@@ -29,18 +35,20 @@ With **RapidTextAI**, you can:
 - Auto Blogging System Schedule and automate content creation on any topic with customizable frequency
 
 **Key Features**:
-- **Multi-Model AI Article Generation**: Choose between GPT, Claude, Gemini, DeepSeek, Grok, GLM.
-- **Agent Mode**: 4-step AI pipeline (Draft → Polish → Heading Optimization → Final Assembly) powered by DeepSeek for higher-quality, publication-ready articles.
-- **Writing Mode**: Fast, single-pass generation using your selected model — same great experience as before.
-- **Integrated Image Generation**: Automatically add relevant images to your AI-written articles
-- **Post Editor Meta Box**: Generate complete articles directly in your WordPress post editor
-- **AI Content Blocks**: Insert smaller AI-generated content sections using blocks in your favorite page builder
-- **Advanced Customization**: Control article structure, headings, paragraphs, and SEO elements
-- **User-Friendly**: Simple interface requiring no technical knowledge
-- **Auto Blogging**: Let RapidTextAI Auto Blog For you.
+- **AI Article Generator**: Generate complete, publication-ready articles — titles, body, images, categories, tags, and excerpts — in one click.
+- **Auto Blogging**: Schedule and automate content creation on any topic with customizable frequency.
+- **SEO Content**: SEO-ready articles with focus keywords, categories, tags, and excerpts.
+- **AI Images**: Automatically add relevant images to your AI-written articles.
+- **Multiple AI Models**: Choose between GPT, Claude, Gemini, DeepSeek, Grok, and GLM.
+- **Agent Mode**: 4-step AI pipeline (Draft → Polish → Heading Optimization → Final Assembly) for higher-quality, publication-ready articles.
+- **Writing Mode**: Fast, single-pass generation using your selected model.
+- **AI Campaign Assistant**: Guided AI chat that reads your site context and helps plan, create, or update campaigns.
+- **Post Editor Meta Box**: Generate complete articles directly in your WordPress post editor.
+- **AI Content Blocks**: Insert AI-generated content sections in Gutenberg, WP Bakery, and Elementor.
+- **Advanced Customization**: Control article structure, headings, paragraphs, and SEO elements.
+- **AI Chatbots**: Create customizable AI chat widgets with knowledge bases and external tool integrations.
+- **User-Friendly**: Simple interface requiring no technical knowledge.
 - **Modern React Dashboard**: Fast, interactive admin pages for Settings, Auto Blogging, and AI Chatbots.
-- **AI Campaign Assistant**: Guided AI chat that reads your site context and helps plan, create, or update auto-blogging campaigns.
-- **Toast Notifications**: Clear, centered success and error alerts with icons and a manual OK action.
 
 
 **Models**:

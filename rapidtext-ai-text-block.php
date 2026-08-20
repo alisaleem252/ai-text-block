@@ -1,6 +1,6 @@
 <?php
 /*
-* Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
+* Plugin Name: AI Content Writer & Auto Blogging for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
 * Version: 4.5.0
 * Author: Rapidtextai.com
