@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Post Generator for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 4.2.1
+* Version: 4.5.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -15,6 +15,7 @@ require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-meta-box.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-check.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-openaihandler.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/chatbots/chatbots.php';
+require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-rest-api.php';
 
 add_action('admin_notices', 'rapidtextai_admin_notice');
 
@@ -190,7 +191,13 @@ function rapidtextai_settings_page() {
     // Retrieve the current API key
     $current_api_key = get_option('rapidtextai_api_key', '');
 
-    include(plugin_dir_path(__FILE__) . 'admin/settings.php');
+    rapidtextai_react_app_root(array(
+        'page' => 'settings',
+        'data' => array(
+            'api_key'     => $current_api_key,
+            'api_key_set' => ! empty( $current_api_key ),
+        ),
+    ));
 }
 
 add_action('wp_ajax_rapidtextai_save_api_key', 'rapidtextai_save_api_key');
@@ -730,7 +737,22 @@ function rapidtextai_auto_blogging_page() {
     
     // Get all categories
     $categories = get_categories(array('hide_empty' => 0));
-    include( RAPIDTEXTAI_PLUGIN_DIR .'/admin/auto_blogging_page.php'); // Include the template file for the settings page
+
+    $author_list = array_map(function ($u) {
+        return array('id' => (int) $u->ID, 'name' => $u->display_name);
+    }, $authors);
+
+    $category_list = array_map(function ($c) {
+        return array('id' => (int) $c->term_id, 'name' => $c->name);
+    }, $categories);
+
+    rapidtextai_react_app_root(array(
+        'page' => 'auto-blogging',
+        'data' => array(
+            'authors'    => array_values($author_list),
+            'categories' => array_values($category_list),
+        ),
+    ));
     
     
     // Handle manual post generation for a campaign

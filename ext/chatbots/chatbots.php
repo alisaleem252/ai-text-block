@@ -80,25 +80,10 @@ function rapidtextai_chatbots_page() {
     if (!current_user_can('manage_options')) {
         return;
     }
-    
-    $action = isset($_GET['action']) ? sanitize_text_field($_GET['action']) : 'list';
-    $chatbot_id = isset($_GET['chatbot_id']) ? intval($_GET['chatbot_id']) : 0;
-    
-    switch ($action) {
-        case 'add':
-            rapidtextai_chatbots_add_edit_page();
-            break;
-        case 'edit':
-            rapidtextai_chatbots_add_edit_page($chatbot_id);
-            break;
-        case 'delete':
-            rapidtextai_chatbots_delete($chatbot_id);
-            rapidtextai_chatbots_list_page();
-            break;
-        default:
-            rapidtextai_chatbots_list_page();
-            break;
-    }
+
+    rapidtextai_react_app_root(array(
+        'page' => 'chatbots',
+    ));
 }
 
 // List chatbots page
