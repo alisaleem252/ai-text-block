@@ -32,6 +32,7 @@ function rapidtextai_react_app_root( $config = array() ) {
             'rest_url'   => esc_url_raw( rest_url( 'rapidtextai/v1' ) ),
             'rest_nonce' => wp_create_nonce( 'wp_rest' ),
             'ajax_url'   => admin_url( 'admin-ajax.php' ),
+            'ajax_nonce' => wp_create_nonce( 'rapidtextai_assistant_nonce' ),
             'app_url'    => 'https://app.rapidtextai.com',
             'data'       => new stdClass(),
         ),
@@ -63,14 +64,14 @@ function rapidtextai_enqueue_admin_app( $hook ) {
         'rapidtextai-app',
         RAPIDTEXTAI_PLUGIN_URL . 'assets/css/app.css',
         array(),
-        '1.3.0'
+        '1.4.0'
     );
 
     wp_register_script(
         'rapidtextai-app',
         RAPIDTEXTAI_PLUGIN_URL . 'assets/js/app.js',
         array(),
-        '1.3.0',
+        '1.4.0',
         true
     );
     wp_enqueue_script( 'rapidtextai-app' );

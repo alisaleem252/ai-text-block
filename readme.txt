@@ -10,6 +10,11 @@ License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
 Generate AI-powered articles using GPT-4, GPT-5, Claude, DeepSeek & Grok with automatic images for WordPress.
 
+**What's New in 4.5:**
+- **Modern React dashboard** — the Settings, Auto Blogging, and AI Chatbots pages have been rebuilt as a fast, interactive interface.
+- **AI Campaign Assistant** — a guided AI chat (right-side dock on the Auto Blogging page) that reads your site's SEO settings and content, then helps you plan topics, keywords, audience, and tone — and creates a new campaign or updates an existing one in one click.
+- **Centered toast notifications** — success and error alerts with icons, headings, and a one-click OK action.
+
 == Description ==
 
 **RapidTextAI** is a powerful AI article generation plugin for WordPress that transforms how you create content. Leveraging cutting-edge models including **GPT**, **Claude**, **Gemini**, **DeepSeek**, and **Grok**, this plugin enables you to generate complete, publication-ready articles with just a few clicks.
@@ -33,6 +38,9 @@ With **RapidTextAI**, you can:
 - **Advanced Customization**: Control article structure, headings, paragraphs, and SEO elements
 - **User-Friendly**: Simple interface requiring no technical knowledge
 - **Auto Blogging**: Let RapidTextAI Auto Blog For you.
+- **Modern React Dashboard**: Fast, interactive admin pages for Settings, Auto Blogging, and AI Chatbots.
+- **AI Campaign Assistant**: Guided AI chat that reads your site context and helps plan, create, or update auto-blogging campaigns.
+- **Toast Notifications**: Clear, centered success and error alerts with icons and a manual OK action.
 
 
 **Models**:
@@ -214,6 +222,14 @@ A: Yes! RapidTextAI offers a Chrome extension for browser-based content generati
 A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
 
 == Changelog ==
+= 4.5.0 =
+* Rebuilt the Settings, Auto Blogging, and AI Chatbots admin pages as a modern React dashboard
+* Added the **AI Campaign Assistant** — a guided AI chat in a right-side dock that gathers site context (SEO plugin data, recent posts, taxonomy, and past campaigns) and helps plan topics, keywords, audience, and tone
+* The Campaign Assistant can create a new auto-blogging campaign or update an existing one, with quick-action buttons and an existing-campaign picker
+* Added centered toast notifications with icons, headings, and a manual OK action for success and error feedback
+* Account status now refreshes immediately after re-authenticating
+* Chatbot editor now loads existing chatbot settings correctly
+
 = 4.0.0 =
 * Added **Agent Mode** to the post editor meta box — a 4-step AI pipeline for higher-quality article generation
 * Agent Mode pipeline: Draft Generation → Polish & Publish → Heading Optimization → Final Assembly
