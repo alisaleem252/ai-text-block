@@ -12,6 +12,9 @@ Generate SEO-ready WordPress articles with AI — titles, long-form content, ima
 
 == Description ==
 
+Introduction
+[youtube https://www.youtube.com/watch?v=g7tuYLgH5U8]
+
 **Generate complete SEO articles directly inside WordPress.** RapidTextAI creates titles, long-form content, images, categories, tags, and excerpts with AI, then schedules posts to publish automatically.
 
 **Who it's for:** Bloggers, marketers, agencies, and site owners who want consistent, SEO-ready content without writing every article by hand.
