@@ -16,6 +16,7 @@ require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-check.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-openaihandler.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/chatbots/chatbots.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-rest-api.php';
+require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-wp-connect.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/campaign-assistant/campaign-assistant.php';
 
 add_action('admin_notices', 'rapidtextai_admin_notice');
@@ -192,11 +193,16 @@ function rapidtextai_settings_page() {
     // Retrieve the current API key
     $current_api_key = get_option('rapidtextai_api_key', '');
 
+    $connection = get_option('rapidtextai_connection', array());
+
     rapidtextai_react_app_root(array(
         'page' => 'settings',
         'data' => array(
             'api_key'     => $current_api_key,
             'api_key_set' => ! empty( $current_api_key ),
+            'site_url'    => home_url(),
+            'site_name'   => get_bloginfo( 'name' ),
+            'connection'  => is_array( $connection ) ? $connection : array(),
         ),
     ));
 }
@@ -214,7 +220,21 @@ function rapidtextai_save_api_key() {
     $api_key = sanitize_text_field($_POST['api_key']);
     update_option('rapidtextai_api_key', $api_key);
 
-    wp_send_json_success(array('message' => 'API Key saved successfully.'));
+    // Bind this site to the account that owns the key. A failure here must not
+    // undo the key that was just saved.
+    $link_note = '';
+    if (function_exists('rapidtextai_connect_link_site_for_key')) {
+        $linked = rapidtextai_connect_link_site_for_key($api_key);
+        if (is_wp_error($linked)) {
+            $link_note = $linked->get_error_message();
+        }
+    }
+
+    wp_send_json_success(array(
+        'message'   => 'API Key saved successfully.',
+        'linked'    => ('' === $link_note),
+        'link_note' => $link_note,
+    ));
 }
 
 

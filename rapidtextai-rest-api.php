@@ -60,18 +60,26 @@ function rapidtextai_enqueue_admin_app( $hook ) {
         return;
     }
 
+    // Cache-bust on each asset's own timestamp. The filenames never change
+    // (they are fixed by the Vite config), so a build that is not accompanied
+    // by a manual version bump would otherwise be invisible to returning admins.
+    $css_path = RAPIDTEXTAI_PLUGIN_DIR . 'assets/css/app.css';
+    $js_path  = RAPIDTEXTAI_PLUGIN_DIR . 'assets/js/app.js';
+    $css_ver  = file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1.4.0';
+    $js_ver   = file_exists( $js_path ) ? (string) filemtime( $js_path ) : '1.4.0';
+
     wp_enqueue_style(
         'rapidtextai-app',
         RAPIDTEXTAI_PLUGIN_URL . 'assets/css/app.css',
         array(),
-        '1.4.0'
+        $css_ver
     );
 
     wp_register_script(
         'rapidtextai-app',
         RAPIDTEXTAI_PLUGIN_URL . 'assets/js/app.js',
         array(),
-        '1.4.0',
+        $js_ver,
         true
     );
     wp_enqueue_script( 'rapidtextai-app' );
@@ -123,7 +131,23 @@ add_action( 'rest_api_init', function () {
                 return new WP_Error( 'missing_key', 'API key is required.', array( 'status' => 400 ) );
             }
             update_option( 'rapidtextai_api_key', $api_key );
-            return rest_ensure_response( array( 'message' => 'API Key saved successfully.' ) );
+
+            // Bind this site to the account that owns the key. A failure here
+            // must not undo the key that was just saved - the site still works,
+            // it is just not linked yet - so it is reported, not thrown.
+            $link_note = '';
+            if ( function_exists( 'rapidtextai_connect_link_site_for_key' ) ) {
+                $linked = rapidtextai_connect_link_site_for_key( $api_key );
+                if ( is_wp_error( $linked ) ) {
+                    $link_note = $linked->get_error_message();
+                }
+            }
+
+            return rest_ensure_response( array(
+                'message'   => 'API Key saved successfully.',
+                'linked'    => ( '' === $link_note ),
+                'link_note' => $link_note,
+            ) );
         },
     ) );
 
