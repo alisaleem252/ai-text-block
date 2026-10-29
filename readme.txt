@@ -1,6 +1,6 @@
 === AI Content Writer & Auto Blogging for WordPress ===
 Contributors: zinger252  
-Tags: ai content generator, ai writer, ai article writer, ai content, auto blogging, content automation, ai blog writer, ai post generator, wordpress ai, gpt, ai writing, article generator
+Tags: ai content generator, ai article writer, ai content, auto blogging, article generator
 Requires at least: 6.0  
 Tested up to: 7.1  
 Requires PHP: 7.0  
@@ -8,12 +8,14 @@ Stable tag: trunk
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
-Generate SEO-ready WordPress articles with AI — titles, long-form content, images, categories, tags, and excerpts — then schedule them to publish automatically. **Free plan: 10 AI-generated articles per month.**
+Generate SEO-ready WordPress articles with AI titles, long-form content, images, categories, tags, and excerpts then schedule them to publish automatically.
 
 == Description ==
 
 Introduction
 [youtube https://www.youtube.com/watch?v=tlMh6vIP8LU]
+
+**Free plan: 10 AI-generated articles per month.**
 
 **Generate complete SEO articles directly inside WordPress.** RapidTextAI creates titles, long-form content, images, categories, tags, and excerpts with AI, then schedules posts to publish automatically.
 
@@ -128,21 +130,31 @@ For detailed terms and privacy, visit the following links:
 
 ### Automatic Installation:
 1. Go to the **Plugins** menu in WordPress.
-2. Click **Add New** and search for "RapidTextAI Blocks".
+2. Click **Add New** and search for "RapidTextAI".
 3. Click **Install Now** and then **Activate** the plugin.
   
 ### Manual Installation:
-1. Download the plugin zip file from the WordPress plugin repository or [RapidTextAI.com](https://app.rapidtextai.com).
+1. Download the plugin zip file from the WordPress plugin repository.
 2. Unzip the downloaded file.
 3. Upload the unzipped folder to the `/wp-content/plugins/` directory of your WordPress installation.
 4. Activate the plugin from the 'Plugins' menu in WordPress.
 
-### Getting Started ###
+### Enable Auto Blogging ###
 
-1. Once the plugin is activated, navigate to your page or post editor using either **Elementor** or **WP Bakery**.
-2. Insert the "RapidTextAI Block" from the widget list into your page.
-3. Enter your prompt in the block to generate AI content instantly.
-4. Customize the output text as needed using the editor.
+1. Once the plugin is activated, navigate to your Dashboard > RapidTextAI.
+2. In the Authentication Section, Connect your RapidTextAI Account or create a new one with WordPress.
+3. The navigate to Dashboard > RapidtextAI > Auto Blogging.
+4. You can click on assitant on the right hand side which will automatically fetch posts and configure campaign for you.
+5. Or you can manually Add New Campaign, Set Campaign Name, Enable Auto Blogging, Publishing Schedule, Post Status, Post Author, AI Model, Tone of Voice, Content Topics & Prompts, Advanced format: Topic: [topic]; Keywords: [keywords]; Tone: [tone]; Audience: [audience]; CTA: [call to action]; Length: [length] : Language: [language]
+6. Save Campaign.
+
+### Generate Blog Post ###
+
+1. Once the plugin is activated, navigate to your Dashboard > RapidTextAI.
+2. In the Authentication Section, Connect your RapidTextAI Account or create a new one with WordPress.
+3. The navigate to Add New Post > Click Generate Article on the right hand side, fill the fields, Write an article about, Focus Keywords, Tags & Categories, Content Images, Select Model, Generate Article.
+4. This will generate an article on your editor which can later edit and publish yourself.
+
 
 == Screenshots ==
 
@@ -233,6 +245,11 @@ A: Yes! RapidTextAI offers a Chrome extension for browser-based content generati
 A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
 
 == Changelog ==
+
+= 4.6.1 =
+* Fixed the Metabox issues for inserting post.
+* Added Tutorials on the settings page.
+
 = 4.5.0 =
 * Rebuilt the Settings, Auto Blogging, and AI Chatbots admin pages as a modern React dashboard
 * Added the **AI Campaign Assistant** — a guided AI chat in a right-side dock that gathers site context (SEO plugin data, recent posts, taxonomy, and past campaigns) and helps plan topics, keywords, audience, and tone
