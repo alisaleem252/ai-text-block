@@ -57,8 +57,11 @@ add_action( 'admin_enqueue_scripts', 'rapidtextai_metabox_enqueue_scripts' );
  * next to the Featured Image meta box in the post editor.
  */
 function rapidtextai_render_generate_modal() {
-    $metabox_js_url  = esc_url( RAPIDTEXTAI_PLUGIN_URL . 'assets/js/metabox.js' );
-    $metabox_css_url = esc_url( RAPIDTEXTAI_PLUGIN_URL . 'assets/css/metabox.css' );
+    // The new React build (app.js) mounts the meta box into #rapidtextai-root.
+    $js_file         = RAPIDTEXTAI_PLUGIN_DIR . 'assets/js/app.js';
+    $css_file        = RAPIDTEXTAI_PLUGIN_DIR . 'assets/css/app.css';
+    $metabox_js_url  = esc_url( RAPIDTEXTAI_PLUGIN_URL . 'assets/js/app.js?ver=' . ( file_exists( $js_file ) ? filemtime( $js_file ) : '1' ) );
+    $metabox_css_url = esc_url( RAPIDTEXTAI_PLUGIN_URL . 'assets/css/app.css?ver=' . ( file_exists( $css_file ) ? filemtime( $css_file ) : '1' ) );
     $icon_url        = 'https://app.rapidtextai.com/assets/images/fav.png?v=1.1';
     ?>
     <!-- RapidTextAI Generate Article Modal -->

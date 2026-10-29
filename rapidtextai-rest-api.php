@@ -65,8 +65,8 @@ function rapidtextai_enqueue_admin_app( $hook ) {
     // by a manual version bump would otherwise be invisible to returning admins.
     $css_path = RAPIDTEXTAI_PLUGIN_DIR . 'assets/css/app.css';
     $js_path  = RAPIDTEXTAI_PLUGIN_DIR . 'assets/js/app.js';
-    $css_ver  = file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1.4.0';
-    $js_ver   = file_exists( $js_path ) ? (string) filemtime( $js_path ) : '1.4.0';
+    $css_ver  = file_exists( $css_path ) ? (string) filemtime( $css_path ) : '1.4.1';
+    $js_ver   = file_exists( $js_path ) ? (string) filemtime( $js_path ) : '1.4.1';
 
     wp_enqueue_style(
         'rapidtextai-app',
