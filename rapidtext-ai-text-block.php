@@ -16,6 +16,7 @@ require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-check.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-openaihandler.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/chatbots/chatbots.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-rest-api.php';
+require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-v2-article.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-wp-connect.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/campaign-assistant/campaign-assistant.php';
 
