@@ -245,3 +245,22 @@ add_action( 'rest_api_init', function () {
         },
     ) );
 } );
+
+/**
+ * Admin page that hosts the React "Pro Article" screen (app.js, page = pro-article).
+ */
+add_action( 'admin_menu', function () {
+    add_submenu_page(
+        'rapidtextai-settings',
+        'Pro Article',
+        'Pro Article',
+        'manage_options',
+        'rapidtextai-pro-article',
+        function () {
+            if ( ! current_user_can( 'manage_options' ) ) {
+                return;
+            }
+            rapidtextai_react_app_root( array( 'page' => 'pro-article' ) );
+        }
+    );
+}, 999 );
