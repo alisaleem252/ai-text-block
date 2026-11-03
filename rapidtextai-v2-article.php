@@ -84,6 +84,11 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
         'include_faq'     => (bool) $r->get_param( 'include_faq' ),
         'include_sources' => (bool) $r->get_param( 'include_sources' ),
         'research'        => (bool) $r->get_param( 'research' ),
+        'include_images'  => (bool) $r->get_param( 'include_images' ),
+        'image_count'     => max( 1, min( 3, (int) ( $r->get_param( 'image_count' ) ?: 3 ) ) ),
+        'image_license'   => 'free' === $r->get_param( 'image_license' ) ? 'free' : 'any',
+        'embed_tweets'    => (bool) $r->get_param( 'embed_tweets' ),
+        'tweet_count'     => max( 1, min( 2, (int) ( $r->get_param( 'tweet_count' ) ?: 2 ) ) ),
         'site_url'        => esc_url_raw( home_url() ),
         'banned_words'    => $csv( $r->get_param( 'banned_words' ) ),
         'stream'          => false,
@@ -125,6 +130,37 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
     return array_filter( $req, function ( $v ) {
         return ! ( is_string( $v ) && '' === $v );
     } );
+}
+
+/**
+ * Download each remote (https) image in the content into the Media Library and point the
+ * markup at the local copy. A failed download keeps the remote URL and adds a warning.
+ *
+ * @return array{html:string,warnings:string[]}
+ */
+function rapidtextai_v2_sideload_images( $post_id, $html ) {
+    $warnings = array();
+    if ( ! preg_match_all( '#<img\b[^>]*\bsrc="(https://[^"]+)"[^>]*>#i', $html, $m, PREG_SET_ORDER ) ) {
+        return array( 'html' => $html, 'warnings' => $warnings );
+    }
+    require_once ABSPATH . 'wp-admin/includes/file.php';
+    require_once ABSPATH . 'wp-admin/includes/media.php';
+    require_once ABSPATH . 'wp-admin/includes/image.php';
+
+    foreach ( array_slice( $m, 0, 3 ) as $match ) {
+        $remote = html_entity_decode( $match[1], ENT_QUOTES | ENT_HTML5 );
+        $alt    = '';
+        if ( preg_match( '#\balt="([^"]*)"#i', $match[0], $a ) ) {
+            $alt = html_entity_decode( $a[1], ENT_QUOTES | ENT_HTML5 );
+        }
+        $local = media_sideload_image( esc_url_raw( $remote ), $post_id, $alt, 'src' );
+        if ( is_wp_error( $local ) || ! is_string( $local ) || '' === $local ) {
+            $warnings[] = 'Could not copy an image into the Media Library; it still loads from its original site.';
+            continue;
+        }
+        $html = str_replace( $match[1], esc_url( $local ), $html );
+    }
+    return array( 'html' => $html, 'warnings' => $warnings );
 }
 
 add_action( 'rest_api_init', function () {
@@ -221,7 +257,7 @@ add_action( 'rest_api_init', function () {
                 'tags'             => array_map( 'sanitize_text_field', (array) ( $data['tags'] ?? array() ) ),
                 'quality'          => $data['quality'] ?? new stdClass(),
                 'sources'          => $data['sources'] ?? array(),
-                'image_suggestions' => $data['image_suggestions'] ?? array(),
+                'media'            => $data['media'] ?? new stdClass(),
                 'warnings'         => array_map( 'sanitize_text_field', (array) ( $data['warnings'] ?? array() ) ),
             );
 
@@ -238,6 +274,16 @@ add_action( 'rest_api_init', function () {
                 if ( ! is_wp_error( $post_id ) ) {
                     $result['post_id']  = (int) $post_id;
                     $result['edit_url'] = get_edit_post_link( $post_id, 'raw' );
+
+                    // Copy the images into the Media Library so the post does not depend on third-party hosts.
+                    if ( false !== $request->get_param( 'sideload_images' ) ) {
+                        $side = rapidtextai_v2_sideload_images( (int) $post_id, $result['body_html'] );
+                        if ( $side['html'] !== $result['body_html'] ) {
+                            wp_update_post( array( 'ID' => (int) $post_id, 'post_content' => $side['html'] ) );
+                            $result['body_html'] = $side['html'];
+                        }
+                        $result['warnings'] = array_merge( $result['warnings'], $side['warnings'] );
+                    }
                 }
             }
 
