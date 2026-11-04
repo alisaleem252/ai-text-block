@@ -111,7 +111,7 @@ For 23 practical examples of how to implement and use chatbots effectively, visi
 = Usage =
 
 Full Demo & Tutorial
-[youtube https://www.youtube.com/watch?v=g7tuYLgH5U8]
+[youtube https://www.youtube.com/watch?v=I5lxE0ra2pg]
 
 = Video Tutorials =
 
