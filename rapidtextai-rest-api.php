@@ -161,7 +161,7 @@ add_action( 'rest_api_init', function () {
                 return new WP_Error( 'no_key', 'API key is not configured.', array( 'status' => 400 ) );
             }
 
-            $url      = 'https://app.rapidtextai.com/api.php?gigsixkey=' . urlencode( $api_key );
+            $url      = rapidtextai_api_origin() . '/api.php?gigsixkey=' . urlencode( $api_key );
             $response = wp_remote_get( $url, array( 'timeout' => 30, 'sslverify' => false ) );
 
             if ( is_wp_error( $response ) ) {
