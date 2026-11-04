@@ -88,7 +88,7 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
         'model'           => sanitize_text_field( (string) $r->get_param( 'model' ) ),
         'word_count'      => max( 300, min( 4000, (int) ( $r->get_param( 'word_count' ) ?: 1500 ) ) ),
         'tone'            => sanitize_text_field( (string) $r->get_param( 'tone' ) ),
-        'language'        => sanitize_text_field( (string) ( $r->get_param( 'language' ) ?: 'English' ) ),
+        'language'        => sanitize_text_field( (string) ( $r->get_param( 'language' ) ?: ( (int) $r->get_param( 'brand_id' ) ? '' : 'English' ) ) ),
         'audience'        => sanitize_text_field( (string) $r->get_param( 'audience' ) ),
         'article_type'    => sanitize_key( (string) ( $r->get_param( 'article_type' ) ?: 'guide' ) ),
         'cta'             => sanitize_text_field( (string) $r->get_param( 'cta' ) ),
@@ -105,6 +105,12 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
         'brand_id'        => max( 0, (int) $r->get_param( 'brand_id' ) ),
         'stream'          => false,
     );
+
+    // Headings the article should follow (for example from SEO Tools > Competitor gap).
+    $outline = array_values( array_filter( array_map( 'sanitize_text_field', array_map( 'strval', (array) $r->get_param( 'outline_hint' ) ) ) ) );
+    if ( $outline ) {
+        $req['outline_hint'] = array_slice( $outline, 0, 12 );
+    }
 
     $voice_desc   = sanitize_textarea_field( (string) $r->get_param( 'voice_description' ) );
     $voice_sample = sanitize_textarea_field( (string) $r->get_param( 'voice_sample' ) );
