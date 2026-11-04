@@ -841,6 +841,7 @@ add_action( 'admin_menu', function () {
         'rapidtextai-dashboard' => array( 'Dashboard', 'dashboard' ),
         'rapidtextai-seo-tools' => array( 'SEO Tools', 'seo-tools' ),
         'rapidtextai-brands'    => array( 'Brands', 'brands' ),
+        'rapidtextai-getting-started' => array( 'Getting Started', 'getting-started' ),
     );
     foreach ( $pages as $slug => $def ) {
         add_submenu_page(
@@ -870,6 +871,7 @@ add_action( 'admin_menu', function () {
         'rapidtextai-auto-blogging',
         'rapidtextai-brands',
         'rapidtextai-chatbots',
+        'rapidtextai-getting-started',
         'rapidtextai-settings',
     );
     $by_slug = array();
