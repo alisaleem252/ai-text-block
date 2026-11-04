@@ -345,6 +345,59 @@ function rapidtextai_v2_campaign_from_legacy( $legacy_id ) {
     );
 }
 
+/* ───────────────────────────────────────────────────────── SEO history (stored in WordPress) */
+
+const RAPIDTEXTAI_SEO_HISTORY_OPTION = 'rapidtextai_seo_history';
+const RAPIDTEXTAI_SEO_HISTORY_LIMIT  = 40;
+
+function rapidtextai_seo_history_index() {
+    $i = get_option( RAPIDTEXTAI_SEO_HISTORY_OPTION, array() );
+    return is_array( $i ) ? $i : array();
+}
+
+/** Keep the result of a tool run on this site so it can be reopened later without spending requests. */
+function rapidtextai_seo_history_add( $tool, array $result, $label, $post_id = 0 ) {
+    unset( $result['original_html'], $result['usage'] );
+    if ( isset( $result['updated_html'] ) && strlen( $result['updated_html'] ) > 300000 ) {
+        $result['updated_html'] = '';
+        $result['too_large']    = true;
+    }
+    $summary = array();
+    switch ( $tool ) {
+        case 'originality':
+            $summary = array( 'score' => (int) ( $result['score'] ?? 0 ), 'matched' => (int) ( $result['matched'] ?? 0 ) );
+            break;
+        case 'fact-check':
+            $summary = array( 'score' => (int) ( $result['summary']['score'] ?? 0 ), 'contradicted' => (int) ( $result['summary']['contradicted'] ?? 0 ) );
+            break;
+        case 'content-refresh':
+            $summary = array( 'updated' => (int) ( $result['summary']['updated'] ?? 0 ) );
+            break;
+        case 'competitor-gap':
+            $summary = array( 'competitors' => count( (array) ( $result['competitors'] ?? array() ) ), 'target_words' => (int) ( $result['target_words'] ?? 0 ) );
+            break;
+    }
+    $id    = 'h' . wp_generate_password( 10, false, false );
+    $post  = $post_id ? get_post( $post_id ) : null;
+    $entry = array(
+        'id'            => $id,
+        'tool'          => $tool,
+        'time'          => time(),
+        'label'         => mb_substr( (string) $label, 0, 120 ),
+        'post_id'       => (int) $post_id,
+        'post_modified' => $post ? $post->post_modified_gmt : '',
+        'summary'       => $summary,
+    );
+    update_option( 'rapidtextai_seo_run_' . $id, $result, false );
+    $index = rapidtextai_seo_history_index();
+    array_unshift( $index, $entry );
+    foreach ( array_slice( $index, RAPIDTEXTAI_SEO_HISTORY_LIMIT ) as $old ) {
+        delete_option( 'rapidtextai_seo_run_' . $old['id'] );
+    }
+    update_option( RAPIDTEXTAI_SEO_HISTORY_OPTION, array_slice( $index, 0, RAPIDTEXTAI_SEO_HISTORY_LIMIT ), false );
+    return $id;
+}
+
 /* ───────────────────────────────────────────────────────── REST routes */
 
 add_action( 'rest_api_init', function () {
@@ -498,12 +551,116 @@ add_action( 'rest_api_init', function () {
             if ( 'content-refresh' === $tool && ! empty( $res['updated_html'] ) ) {
                 $res['updated_html'] = wp_kses_post( $res['updated_html'] );
             }
+            if ( 'embeds' !== $tool && 'brand-from-url' !== $tool ) {
+                $label = $post ? get_the_title( $post ) : ( 'competitor-gap' === $tool ? ( $in['keyword'] ?? '' ) : ( ! empty( $in['url'] ) ? $in['url'] : wp_trim_words( wp_strip_all_tags( (string) ( $in['html'] ?? $in['text'] ?? '' ) ), 8, '…' ) ) );
+                $res['history_id'] = rapidtextai_seo_history_add( $tool, $res, $label, $post_id );
+            }
             if ( $post && in_array( $tool, array( 'fact-check', 'originality', 'content-refresh' ), true ) ) {
                 $save = $res;
                 unset( $save['original_html'], $save['updated_html'] );
                 update_post_meta( $post_id, '_rapidtextai_seo_' . str_replace( '-', '_', $tool ), wp_slash( wp_json_encode( array( 'at' => time(), 'result' => $save ) ) ) );
             }
             return rest_ensure_response( $res );
+        },
+    ) );
+
+    // SEO history ---------------------------------------------------------------
+    register_rest_route( $ns, '/v2/seo/history', array(
+        'methods'             => 'GET',
+        'permission_callback' => $perm,
+        'callback'            => function () {
+            return rest_ensure_response( rapidtextai_seo_history_index() );
+        },
+    ) );
+    register_rest_route( $ns, '/v2/seo/history/(?P<id>h[A-Za-z0-9]+)', array(
+        array(
+            'methods'             => 'GET',
+            'permission_callback' => $perm,
+            'callback'            => function ( WP_REST_Request $r ) {
+                foreach ( rapidtextai_seo_history_index() as $e ) {
+                    if ( $e['id'] === $r['id'] ) {
+                        $data = get_option( 'rapidtextai_seo_run_' . $e['id'], null );
+                        if ( ! is_array( $data ) ) {
+                            break;
+                        }
+                        $post = $e['post_id'] ? get_post( $e['post_id'] ) : null;
+                        return rest_ensure_response( array(
+                            'entry'        => $e,
+                            'result'       => $data,
+                            'post_missing' => $e['post_id'] && ! $post,
+                            'post_changed' => $post && $e['post_modified'] && $post->post_modified_gmt !== $e['post_modified'],
+                        ) );
+                    }
+                }
+                return new WP_Error( 'not_found', 'That result is no longer stored.', array( 'status' => 404 ) );
+            },
+        ),
+        array(
+            'methods'             => 'DELETE',
+            'permission_callback' => $perm,
+            'callback'            => function ( WP_REST_Request $r ) {
+                $index = array_values( array_filter( rapidtextai_seo_history_index(), function ( $e ) use ( $r ) {
+                    return $e['id'] !== $r['id'];
+                } ) );
+                delete_option( 'rapidtextai_seo_run_' . $r['id'] );
+                update_option( RAPIDTEXTAI_SEO_HISTORY_OPTION, $index, false );
+                return rest_ensure_response( array( 'deleted' => true ) );
+            },
+        ),
+    ) );
+
+    // Improve topics (Pro campaigns) --------------------------------------------
+    register_rest_route( $ns, '/v2/improve-topics', array(
+        'methods'             => 'POST',
+        'permission_callback' => $perm,
+        'callback'            => function ( WP_REST_Request $r ) {
+            $seed = array_slice( array_map( 'sanitize_text_field', preg_split( '/\r\n|\r|\n/', (string) $r->get_param( 'topics' ) ) ), 0, 40 );
+            $seed = array_values( array_filter( array_map( 'trim', $seed ) ) );
+            if ( ! $seed ) {
+                return new WP_Error( 'no_topics', 'Type at least one topic or idea first.', array( 'status' => 400 ) );
+            }
+            $count = max( 3, min( 30, (int) ( $r->get_param( 'count' ) ?: 10 ) ) );
+
+            $context = '';
+            $brand_id = (int) $r->get_param( 'brand_id' );
+            if ( $brand_id ) {
+                $b = rapidtextai_api_request( 'GET', 'brands/' . $brand_id, null, 20 );
+                if ( ! is_wp_error( $b ) ) {
+                    $bits = array_filter( array( $b['name'] ?? '', $b['description'] ?? '', $b['audience'] ?? '', $b['product_info'] ?? '' ) );
+                    $context = "About the site: " . mb_substr( implode( '. ', $bits ), 0, 800 ) . "\n";
+                }
+            }
+            $prompt = "You plan content for a blog.\n" . $context
+                . "Starting ideas from the editor (they may be rough, short or one line):\n- " . implode( "\n- ", $seed ) . "\n\n"
+                . "Write exactly {$count} specific, search-friendly blog post topics that build on these ideas, covering different angles and search intents (how-to, comparison, list, beginner, advanced, mistakes, cost). Keep any idea the editor already wrote, improved. Use the same language as the ideas. No duplicates.\n"
+                . "Format: one per line as: Topic title | main keyword phrase\nNo numbering, no bullets, no extra text.";
+
+            $res = rapidtextai_api_request( 'POST', 'v1/chat/completions', array(
+                'model'       => 'gpt-4o-mini',
+                'messages'    => array(
+                    array( 'role' => 'system', 'content' => 'You are an expert SEO content strategist.' ),
+                    array( 'role' => 'user', 'content' => $prompt ),
+                ),
+                'max_tokens'  => 1500,
+                'temperature' => 0.7,
+            ), 60 );
+            if ( is_wp_error( $res ) ) {
+                return $res;
+            }
+            $text  = (string) ( $res['choices'][0]['message']['content'] ?? '' );
+            $lines = array();
+            foreach ( preg_split( '/\r\n|\r|\n/', $text ) as $l ) {
+                $l = trim( preg_replace( '/^(\d+[\.\)]\s*|[-*•]\s*)/u', '', trim( $l ) ) );
+                if ( '' === $l || false === strpos( $l, '|' ) && mb_strlen( $l ) < 8 ) {
+                    continue;
+                }
+                $lines[] = sanitize_text_field( $l );
+            }
+            $lines = array_values( array_unique( $lines ) );
+            if ( ! $lines ) {
+                return new WP_Error( 'empty', 'No topics came back. Try again with a little more detail.', array( 'status' => 502 ) );
+            }
+            return rest_ensure_response( array( 'topics' => implode( "\n", array_slice( $lines, 0, $count ) ) ) );
         },
     ) );
 
