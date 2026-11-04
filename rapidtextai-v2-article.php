@@ -18,7 +18,18 @@ if ( ! defined( 'ABSPATH' ) ) {
     exit;
 }
 
-define( 'RAPIDTEXTAI_V2_BASE', 'https://app.rapidtextai.com/openai/v2/article/' );
+if ( ! function_exists( 'rapidtextai_api_origin' ) ) {
+    /**
+     * Origin of the RapidTextAI API. Overridable (constant or filter) so a staging server or a local
+     * test double can be used; production is always https://app.rapidtextai.com.
+     */
+    function rapidtextai_api_origin() {
+        $origin = defined( 'RAPIDTEXTAI_API_ORIGIN' ) ? RAPIDTEXTAI_API_ORIGIN : 'https://app.rapidtextai.com';
+        return untrailingslashit( apply_filters( 'rapidtextai_api_origin', $origin ) );
+    }
+}
+
+define( 'RAPIDTEXTAI_V2_BASE', rapidtextai_api_origin() . '/openai/v2/article/' );
 
 /**
  * Capabilities of the v2 engine, cached briefly. Returns array|null (null = unavailable).
@@ -91,6 +102,7 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
         'tweet_count'     => max( 1, min( 2, (int) ( $r->get_param( 'tweet_count' ) ?: 2 ) ) ),
         'site_url'        => esc_url_raw( home_url() ),
         'banned_words'    => $csv( $r->get_param( 'banned_words' ) ),
+        'brand_id'        => max( 0, (int) $r->get_param( 'brand_id' ) ),
         'stream'          => false,
     );
 
@@ -127,6 +139,10 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
         $req['internal_links'] = $links;
     }
 
+    if ( empty( $req['brand_id'] ) ) {
+        unset( $req['brand_id'] );
+    }
+
     return array_filter( $req, function ( $v ) {
         return ! ( is_string( $v ) && '' === $v );
     } );
@@ -136,12 +152,13 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
  * Download each remote (https) image in the content into the Media Library and point the
  * markup at the local copy. A failed download keeps the remote URL and adds a warning.
  *
- * @return array{html:string,warnings:string[]}
+ * @return array{html:string,warnings:string[],attachment_ids:int[]}
  */
 function rapidtextai_v2_sideload_images( $post_id, $html ) {
     $warnings = array();
-    if ( ! preg_match_all( '#<img\b[^>]*\bsrc="(https://[^"]+)"[^>]*>#i', $html, $m, PREG_SET_ORDER ) ) {
-        return array( 'html' => $html, 'warnings' => $warnings );
+    $ids      = array();
+    if ( ! preg_match_all( '#<img\b[^>]*\bsrc="(https?://[^"]+)"[^>]*>#i', $html, $m, PREG_SET_ORDER ) ) {
+        return array( 'html' => $html, 'warnings' => $warnings, 'attachment_ids' => $ids );
     }
     require_once ABSPATH . 'wp-admin/includes/file.php';
     require_once ABSPATH . 'wp-admin/includes/media.php';
@@ -153,14 +170,152 @@ function rapidtextai_v2_sideload_images( $post_id, $html ) {
         if ( preg_match( '#\balt="([^"]*)"#i', $match[0], $a ) ) {
             $alt = html_entity_decode( $a[1], ENT_QUOTES | ENT_HTML5 );
         }
-        $local = media_sideload_image( esc_url_raw( $remote ), $post_id, $alt, 'src' );
-        if ( is_wp_error( $local ) || ! is_string( $local ) || '' === $local ) {
+        $att_id = media_sideload_image( esc_url_raw( $remote ), $post_id, $alt, 'id' );
+        $local  = is_wp_error( $att_id ) ? '' : wp_get_attachment_url( (int) $att_id );
+        if ( is_wp_error( $att_id ) || ! $local ) {
             $warnings[] = 'Could not copy an image into the Media Library; it still loads from its original site.';
             continue;
         }
-        $html = str_replace( $match[1], esc_url( $local ), $html );
+        $ids[] = (int) $att_id;
+        $html  = str_replace( $match[1], esc_url( $local ), $html );
     }
-    return array( 'html' => $html, 'warnings' => $warnings );
+    return array( 'html' => $html, 'warnings' => $warnings, 'attachment_ids' => $ids );
+}
+
+/**
+ * Call the v2 engine and return the cleaned result, or a WP_Error.
+ *
+ * Shared by the Write screen, the post editor and v2 campaigns, so all three behave the same.
+ *
+ * @param string $api_key RapidTextAI key.
+ * @param array  $body    Request produced by rapidtextai_v2_build_request().
+ * @return array|WP_Error
+ */
+function rapidtextai_v2_generate( $api_key, array $body ) {
+    if ( empty( $api_key ) ) {
+        return new WP_Error( 'no_key', 'API key is not configured.', array( 'status' => 400 ) );
+    }
+    if ( empty( $body['topic'] ) ) {
+        return new WP_Error( 'no_topic', 'A topic is required.', array( 'status' => 400 ) );
+    }
+
+    // A full article takes 1-3 minutes.
+    if ( function_exists( 'set_time_limit' ) ) {
+        @set_time_limit( 330 );
+    }
+    $response = wp_remote_post(
+        rapidtextai_api_origin() . '/openai/v2/article/generate?gigsixkey=' . rawurlencode( $api_key ),
+        array(
+            'headers' => array( 'Content-Type' => 'application/json', 'Authorization' => 'Bearer ' . $api_key ),
+            'body'    => wp_json_encode( $body ),
+            'timeout' => 320,
+        )
+    );
+    if ( is_wp_error( $response ) ) {
+        return new WP_Error( 'request_failed', 'Could not reach RapidTextAI: ' . $response->get_error_message(), array( 'status' => 502 ) );
+    }
+    $code = (int) wp_remote_retrieve_response_code( $response );
+    $data = json_decode( wp_remote_retrieve_body( $response ), true );
+    if ( 200 !== $code || ! is_array( $data ) || empty( $data['body_html'] ) ) {
+        $msg = is_array( $data ) && ! empty( $data['error']['message'] ) ? $data['error']['message'] : 'Generation failed (HTTP ' . $code . ').';
+        return new WP_Error( 'generation_failed', sanitize_text_field( $msg ), array( 'status' => in_array( $code, array( 401, 402, 429 ), true ) ? $code : 502 ) );
+    }
+
+    // The engine output is derived from web research: strip anything WordPress would not allow in a post.
+    $data['body_html'] = wp_kses_post( $data['body_html'] );
+
+    return array(
+        'title'            => sanitize_text_field( $data['title'] ?? '' ),
+        'slug'             => sanitize_title( $data['slug'] ?? '' ),
+        'meta_description' => sanitize_text_field( $data['meta_description'] ?? '' ),
+        'body_html'        => $data['body_html'],
+        'word_count'       => (int) ( $data['word_count'] ?? 0 ),
+        'tags'             => array_map( 'sanitize_text_field', (array) ( $data['tags'] ?? array() ) ),
+        'quality'          => $data['quality'] ?? new stdClass(),
+        'sources'          => $data['sources'] ?? array(),
+        'media'            => $data['media'] ?? new stdClass(),
+        'warnings'         => array_map( 'sanitize_text_field', (array) ( $data['warnings'] ?? array() ) ),
+    );
+}
+
+/**
+ * Save a generated article as a post.
+ *
+ * @param array $result Output of rapidtextai_v2_generate().
+ * @param array $opts   status, author, categories, post_type, sideload_images, featured_image, source (label).
+ * @return array|WP_Error The $result with post_id, edit_url (and updated body_html/warnings).
+ */
+function rapidtextai_v2_save_post( array $result, array $opts = array() ) {
+    $opts = array_merge( array(
+        'status'          => 'draft',
+        'author'          => 0,
+        'categories'      => array(),
+        'post_type'       => 'post',
+        'sideload_images' => true,
+        'featured_image'  => false,
+        'fallback_title'  => '',
+        'meta'            => array(),
+    ), $opts );
+
+    $status = in_array( $opts['status'], array( 'draft', 'pending', 'publish', 'private' ), true ) ? $opts['status'] : 'draft';
+    $post   = array(
+        'post_title'   => $result['title'] ? $result['title'] : $opts['fallback_title'],
+        'post_name'    => $result['slug'],
+        'post_content' => $result['body_html'],
+        'post_excerpt' => $result['meta_description'],
+        'post_status'  => 'publish' === $status ? 'draft' : $status, // published after images are in place
+        'post_type'    => $opts['post_type'],
+        'tags_input'   => $result['tags'],
+    );
+    if ( $opts['author'] ) {
+        $post['post_author'] = (int) $opts['author'];
+    }
+    $categories = array_values( array_filter( array_map( 'intval', (array) $opts['categories'] ) ) );
+    if ( $categories && 'post' === $opts['post_type'] ) {
+        $post['post_category'] = $categories;
+    }
+
+    $post_id = wp_insert_post( $post, true );
+    if ( is_wp_error( $post_id ) ) {
+        return $post_id;
+    }
+    $result['post_id']  = (int) $post_id;
+    $result['edit_url'] = get_edit_post_link( $post_id, 'raw' );
+
+    // Copy the images into the Media Library so the post does not depend on third-party hosts.
+    if ( $opts['sideload_images'] ) {
+        $side = rapidtextai_v2_sideload_images( (int) $post_id, $result['body_html'] );
+        if ( $side['html'] !== $result['body_html'] ) {
+            wp_update_post( array( 'ID' => (int) $post_id, 'post_content' => $side['html'] ) );
+            $result['body_html'] = $side['html'];
+        }
+        $result['warnings'] = array_merge( $result['warnings'], $side['warnings'] );
+        if ( $opts['featured_image'] && ! empty( $side['attachment_ids'] ) ) {
+            set_post_thumbnail( $post_id, $side['attachment_ids'][0] );
+        }
+    }
+
+    update_post_meta( $post_id, '_rapidtextai_engine', 'v2' );
+    if ( ! empty( $result['quality']['score'] ) ) {
+        update_post_meta( $post_id, '_rapidtextai_quality', (int) $result['quality']['score'] );
+    }
+    if ( ! empty( $result['sources'] ) ) {
+        update_post_meta( $post_id, '_rapidtextai_sources', wp_json_encode( $result['sources'] ) );
+    }
+    // Meta description for the common SEO plugins; harmless when none is installed.
+    if ( '' !== $result['meta_description'] ) {
+        update_post_meta( $post_id, '_yoast_wpseo_metadesc', $result['meta_description'] );
+        update_post_meta( $post_id, 'rank_math_description', $result['meta_description'] );
+    }
+    foreach ( (array) $opts['meta'] as $k => $v ) {
+        update_post_meta( $post_id, sanitize_key( $k ), $v );
+    }
+
+    if ( 'publish' === $status ) {
+        wp_update_post( array( 'ID' => (int) $post_id, 'post_status' => 'publish' ) );
+    }
+    $result['status'] = $status;
+    return $result;
 }
 
 add_action( 'rest_api_init', function () {
@@ -218,72 +373,21 @@ add_action( 'rest_api_init', function () {
             if ( empty( $api_key ) ) {
                 return new WP_Error( 'no_key', 'API key is not configured.', array( 'status' => 400 ) );
             }
-            $body = rapidtextai_v2_build_request( $request );
-            if ( empty( $body['topic'] ) ) {
-                return new WP_Error( 'no_topic', 'A topic is required.', array( 'status' => 400 ) );
+            $body   = rapidtextai_v2_build_request( $request );
+            $result = rapidtextai_v2_generate( $api_key, $body );
+            if ( is_wp_error( $result ) ) {
+                return $result;
             }
-
-            // A full article takes 1-3 minutes.
-            if ( function_exists( 'set_time_limit' ) ) {
-                @set_time_limit( 330 );
-            }
-            $response = wp_remote_post(
-                RAPIDTEXTAI_V2_BASE . 'generate?gigsixkey=' . rawurlencode( $api_key ),
-                array(
-                    'headers' => array( 'Content-Type' => 'application/json', 'Authorization' => 'Bearer ' . $api_key ),
-                    'body'    => wp_json_encode( $body ),
-                    'timeout' => 320,
-                )
-            );
-            if ( is_wp_error( $response ) ) {
-                return new WP_Error( 'request_failed', 'Could not reach RapidTextAI: ' . $response->get_error_message(), array( 'status' => 502 ) );
-            }
-            $code = (int) wp_remote_retrieve_response_code( $response );
-            $data = json_decode( wp_remote_retrieve_body( $response ), true );
-            if ( 200 !== $code || ! is_array( $data ) || empty( $data['body_html'] ) ) {
-                $msg = is_array( $data ) && ! empty( $data['error']['message'] ) ? $data['error']['message'] : 'Generation failed (HTTP ' . $code . ').';
-                return new WP_Error( 'generation_failed', sanitize_text_field( $msg ), array( 'status' => 429 === $code ? 429 : 502 ) );
-            }
-
-            // The engine output is derived from web research: strip anything WordPress would not allow in a post.
-            $data['body_html'] = wp_kses_post( $data['body_html'] );
-
-            $result = array(
-                'title'            => sanitize_text_field( $data['title'] ?? '' ),
-                'slug'             => sanitize_title( $data['slug'] ?? '' ),
-                'meta_description' => sanitize_text_field( $data['meta_description'] ?? '' ),
-                'body_html'        => $data['body_html'],
-                'word_count'       => (int) ( $data['word_count'] ?? 0 ),
-                'tags'             => array_map( 'sanitize_text_field', (array) ( $data['tags'] ?? array() ) ),
-                'quality'          => $data['quality'] ?? new stdClass(),
-                'sources'          => $data['sources'] ?? array(),
-                'media'            => $data['media'] ?? new stdClass(),
-                'warnings'         => array_map( 'sanitize_text_field', (array) ( $data['warnings'] ?? array() ) ),
-            );
 
             if ( $request->get_param( 'save_draft' ) && current_user_can( 'edit_posts' ) ) {
-                $post_id = wp_insert_post( array(
-                    'post_title'   => $result['title'] ?: $body['topic'],
-                    'post_name'    => $result['slug'],
-                    'post_content' => $result['body_html'],
-                    'post_excerpt' => $result['meta_description'],
-                    'post_status'  => 'draft',
-                    'post_type'    => 'post',
-                    'tags_input'   => $result['tags'],
-                ), true );
-                if ( ! is_wp_error( $post_id ) ) {
-                    $result['post_id']  = (int) $post_id;
-                    $result['edit_url'] = get_edit_post_link( $post_id, 'raw' );
-
-                    // Copy the images into the Media Library so the post does not depend on third-party hosts.
-                    if ( false !== $request->get_param( 'sideload_images' ) ) {
-                        $side = rapidtextai_v2_sideload_images( (int) $post_id, $result['body_html'] );
-                        if ( $side['html'] !== $result['body_html'] ) {
-                            wp_update_post( array( 'ID' => (int) $post_id, 'post_content' => $side['html'] ) );
-                            $result['body_html'] = $side['html'];
-                        }
-                        $result['warnings'] = array_merge( $result['warnings'], $side['warnings'] );
-                    }
+                $saved = rapidtextai_v2_save_post( $result, array(
+                    'status'          => 'draft',
+                    'sideload_images' => false !== $request->get_param( 'sideload_images' ),
+                    'featured_image'  => (bool) $request->get_param( 'featured_image' ),
+                    'fallback_title'  => $body['topic'],
+                ) );
+                if ( ! is_wp_error( $saved ) ) {
+                    $result = $saved;
                 }
             }
 
@@ -298,8 +402,8 @@ add_action( 'rest_api_init', function () {
 add_action( 'admin_menu', function () {
     add_submenu_page(
         'rapidtextai-settings',
-        'Pro Article',
-        'Pro Article',
+        'Write Article',
+        'Write Article',
         'manage_options',
         'rapidtextai-pro-article',
         function () {

@@ -33,6 +33,10 @@ function rapidtextai_metabox_enqueue_scripts( $hook ) {
         'ajax_url' => admin_url('admin-ajax.php', is_ssl() ? 'https' : 'relative'),
         'nonce'    => wp_create_nonce( 'rapidtextai_nonce' ),
         'api_key'  => get_option('rapidtextai_api_key', ''),
+        'rest_url'       => esc_url_raw( rest_url( 'rapidtextai/v1' ) ),
+        'rest_nonce'     => wp_create_nonce( 'wp_rest' ),
+        'post_id'        => (int) get_the_ID(),
+        'default_engine' => function_exists( 'rapidtextai_default_engine' ) ? rapidtextai_default_engine() : 'v2',
     ) );
 
     // Enqueue the modal trigger button script (follows same pattern as featured.js)
@@ -107,8 +111,9 @@ function rapidtextai_render_generate_modal() {
         display: flex;
     }
     #rapidtextai-modal-wrap {
-        background: #fff;
-        border-radius: 8px;
+        background: #0e1529;
+        color: #e6ebf6;
+        border-radius: 12px;
         width: 92%;
         max-width: 900px;
         max-height: 90vh;
@@ -122,8 +127,9 @@ function rapidtextai_render_generate_modal() {
         align-items: center;
         justify-content: space-between;
         padding: 14px 20px;
-        border-bottom: 1px solid #ddd;
-        background: #f8f8f8;
+        border-bottom: 1px solid #2a3a66;
+        background: #151f39;
+        color: #e6ebf6;
         font-size: 15px;
         font-weight: 600;
         flex-shrink: 0;
@@ -142,13 +148,13 @@ function rapidtextai_render_generate_modal() {
         font-size: 24px;
         line-height: 1;
         cursor: pointer;
-        color: #666;
+        color: #9aa7c7;
         padding: 0 4px;
         transition: color .15s;
     }
-    #rapidtextai-modal-close:hover { color: #000; }
+    #rapidtextai-modal-close:hover { color: #fff; }
     #rapidtextai-modal-body {
-        padding: 20px;
+        padding: 0;
         overflow-y: auto;
         flex: 1;
     }
