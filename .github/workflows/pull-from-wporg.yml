@@ -1,0 +1,58 @@
+# One-off: copy what's live on WordPress.org (SVN trunk + /assets) on top of main and push it to the
+# wporg-trunk branch for review as a PR. Runs when this branch is pushed, or by hand from the Actions tab.
+name: Pull from WordPress.org
+
+on:
+  push:
+    branches: [wporg-pull]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+env:
+  SVN_URL: https://plugins.svn.wordpress.org/ai-text-block
+
+jobs:
+  pull:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Install Subversion
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq subversion
+
+      - name: Show what's on WordPress.org
+        run: |
+          svn info "$SVN_URL/trunk" | grep -E "Revision|Last Changed"
+          echo "Latest tags:"; svn ls "$SVN_URL/tags" | sort -V | tail -5
+          echo "Recent trunk commits:"; svn log -l 5 "$SVN_URL/trunk"
+          echo "Stable tag in trunk readme:"; svn cat "$SVN_URL/trunk/readme.txt" | grep -i "^Stable tag"
+
+      - name: Export trunk and assets
+        run: |
+          svn export -q "$SVN_URL/trunk" /tmp/trunk
+          svn export -q "$SVN_URL/assets" /tmp/assets
+          echo "REV=$(svn info --show-item last-changed-revision "$SVN_URL/trunk")" >> "$GITHUB_ENV"
+
+      - name: Copy into the repo
+        run: |
+          # Mirror trunk over main; keep git-only files
+          rsync -rc --delete /tmp/trunk/ ./ \
+            --exclude=.git --exclude=.github --exclude=.wordpress-org \
+            --exclude=.gitignore --exclude=.distignore --exclude=documentation.md
+          mkdir -p .wordpress-org
+          rsync -rc --delete /tmp/assets/ .wordpress-org/
+          git status --short | head -100
+          echo "Changed files: $(git status --short | wc -l)"
+
+      - name: Push wporg-trunk
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git checkout -B wporg-trunk
+          git add -A
+          git commit -m "Sync from WordPress.org SVN trunk r$REV and /assets" || echo "Nothing differs from main"
+          git push -f origin wporg-trunk
