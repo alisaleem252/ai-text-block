@@ -1,0 +1,122 @@
+# Deploys the plugin to WordPress.org SVN (https://plugins.svn.wordpress.org/ai-text-block/) when main changes.
+#
+# - Version in rapidtext-ai-text-block.php is new on WordPress.org: commit main to trunk, create tags/<version>,
+#   and tag the commit in git. This is a release; sites get the update.
+# - Version already on WordPress.org: update readme.txt and the .wordpress-org assets only (banners, icon,
+#   screenshots). Code changes without a version bump are not shipped.
+#
+# Safety: until the repository variable WPORG_DEPLOY is set to "true", pushes run as a dry run that shows the
+# SVN changes in the log and commits nothing. Run it by hand (Actions > Deploy to WordPress.org > Run workflow)
+# to dry-run or deploy on demand.
+#
+# Secrets (Settings > Secrets and variables > Actions): SVN_USERNAME (WordPress.org username) and
+# SVN_PASSWORD (the SVN password from https://profiles.wordpress.org/me/profile/edit/group/3/?screen=svn-password).
+
+name: Deploy to WordPress.org
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: Dry run (show the SVN changes, commit nothing)
+        type: boolean
+        default: true
+
+concurrency:
+  group: wporg-deploy
+  cancel-in-progress: false
+
+permissions:
+  contents: write # to push the git tag after a release
+
+env:
+  SLUG: ai-text-block
+  MAIN_FILE: rapidtext-ai-text-block.php
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Decide dry run
+        id: mode
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            dry="${{ inputs.dry_run }}"
+          elif [ "${{ vars.WPORG_DEPLOY }}" = "true" ]; then
+            dry=false
+          else
+            dry=true
+            echo "::notice::WPORG_DEPLOY is not 'true', so this push is a dry run. Set the repository variable to deploy on push."
+          fi
+          echo "dry=$dry" >> "$GITHUB_OUTPUT"
+          echo "Dry run: $dry"
+
+      - name: Read versions
+        id: v
+        run: |
+          version=$(grep -m1 -iE '^[[:space:]*]*Version:' "$MAIN_FILE" | sed -E 's/.*Version:[[:space:]]*//I' | tr -d '\r[:space:]')
+          stable=$(grep -m1 -iE '^Stable tag:' readme.txt | sed -E 's/^Stable tag:[[:space:]]*//I' | tr -d '\r[:space:]')
+          if [ -z "$version" ]; then echo "::error file=$MAIN_FILE::No Version: header found"; exit 1; fi
+          if [ "$stable" != "$version" ] && [ "$stable" != "trunk" ]; then
+            echo "::error file=readme.txt::Stable tag ($stable) must match the plugin Version ($version)"
+            exit 1
+          fi
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+          echo "Plugin version $version, readme Stable tag $stable"
+
+      - name: Install Subversion
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq subversion
+
+      - name: Is this version already on WordPress.org?
+        id: tag
+        run: |
+          base="https://plugins.svn.wordpress.org/$SLUG"
+          svn ls "$base/trunk/" > /dev/null # fails the job if SVN can't be reached, instead of guessing
+          if svn ls "$base/tags/${{ steps.v.outputs.version }}/" > /dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "tags/${{ steps.v.outputs.version }} exists: readme and assets update only"
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+            echo "tags/${{ steps.v.outputs.version }} is new: release"
+          fi
+
+      - name: Release new version
+        if: steps.tag.outputs.exists == 'false'
+        uses: 10up/action-wordpress-plugin-deploy@2.3.0
+        with:
+          dry-run: ${{ steps.mode.outputs.dry }}
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ${{ env.SLUG }}
+          VERSION: ${{ steps.v.outputs.version }}
+
+      - name: Tag the release in git
+        if: steps.tag.outputs.exists == 'false' && steps.mode.outputs.dry == 'false'
+        run: |
+          v="${{ steps.v.outputs.version }}"
+          if git ls-remote --exit-code --tags origin "refs/tags/$v" > /dev/null; then
+            echo "git tag $v already exists"
+          else
+            git tag "$v" && git push origin "refs/tags/$v"
+          fi
+
+      - name: Update readme and assets
+        if: steps.tag.outputs.exists == 'true' && steps.mode.outputs.dry == 'false'
+        uses: 10up/action-wordpress-plugin-asset-update@2.2.0
+        env:
+          SVN_USERNAME: ${{ secrets.SVN_USERNAME }}
+          SVN_PASSWORD: ${{ secrets.SVN_PASSWORD }}
+          SLUG: ${{ env.SLUG }}
+          IGNORE_OTHER_FILES: true
+          # No .wordpress-org folder yet: leave the banners, icon and screenshots in SVN untouched
+          SKIP_ASSETS: ${{ hashFiles('.wordpress-org/**') == '' }}
+
+      - name: Readme and assets (dry run)
+        if: steps.tag.outputs.exists == 'true' && steps.mode.outputs.dry == 'true'
+        run: |
+          echo "Dry run, version already on WordPress.org: a real run would sync readme.txt and .wordpress-org assets only."
