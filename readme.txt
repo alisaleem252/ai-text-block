@@ -8,7 +8,7 @@ Stable tag: trunk
 License: GPLv2 or later  
 License URI: https://www.gnu.org/licenses/gpl-2.0.html  
 
-Generate researched, SEO-ready WordPress articles with AI, check and refresh your content with built-in SEO tools, schedule posts to publish automatically, and add an AI chatbot to your site.
+Generate researched, SEO-ready articles with AI, check and refresh content with SEO tools, auto-publish on a schedule, and add an AI chatbot.
 
 == Description ==
 
