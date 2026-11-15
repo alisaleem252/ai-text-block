@@ -1,0 +1,10 @@
+# Files kept out of the WordPress.org plugin (used by .github/workflows/wordpress-org-deploy.yml)
+/.git
+/.github
+/.wordpress-org
+.distignore
+.gitignore
+.gitattributes
+documentation.md
+.DS_Store
+Thumbs.db
