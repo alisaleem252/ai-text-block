@@ -25,6 +25,9 @@ Introduction
 
 **Is it free?** Yes — the Free plan includes **10 AI-generated articles per month**. Paid plans start at $10/month.
 
+**What's New in 5.1:**
+- **Onboard your website** — connect with your WordPress account and RapidTextAI researches your site: your brand, competitors, keywords, the questions people ask, and what the top results miss. It then sets up your Pro campaigns with outlines and writes your first articles as WordPress drafts for you to review. Find it under RapidTextAI > Onboard your website.
+
 **What's New in 5.0:**
 - **Redesigned admin** — every RapidTextAI page now shares one clean, modern interface, with a dashboard showing your usage, recent articles, and brand health.
 - **Pro Auto Blogging (new default)** — Pro campaigns research each topic on the live web and write a structured, sourced article on your schedule. Your existing classic campaigns keep running exactly as before, and you can copy any of them across as a paused Pro campaign.
@@ -307,7 +310,31 @@ A: Yes! RapidTextAI offers a Chrome extension for browser-based content generati
 **Q: Is my data secure when using RapidTextAI?**  
 A: Yes, RapidTextAI follows strict security protocols. Your content and data are transmitted securely, and we don't store your generated content on our servers beyond the generation process. Please review our Privacy Policy for complete details.
 
+**Q: What does Onboard your website do?**
+A: It connects your site with your WordPress account, researches your website and its competitors on RapidTextAI's servers, and then creates paused Pro campaigns (with an outline for every topic) and your first articles as drafts in your own WordPress. Nothing is published until you choose to. You can skip it and set things up yourself.
+
+== External services ==
+
+This plugin connects to the following services. It does not send anything until you connect your site or use a feature that needs them.
+
+**RapidTextAI (rapidtextai.com)**
+Writes articles, runs the SEO tools and chatbots, and runs the website research in Onboard your website.
+* Sent when you connect: your site address, site name, and your WordPress user's name and email, so RapidTextAI can sign you in or create your account.
+* Sent when you use a feature: what that feature needs, for example your topic, keywords, and brand settings, or your site address for onboarding (RapidTextAI then reads your public pages and search results about your site).
+* Terms of Service: https://app.rapidtextai.com/terms — Privacy Policy: https://app.rapidtextai.com/privacy-policy
+
+**Stripe (stripe.com)**
+Only if you choose a paid plan during onboarding: the plugin opens Stripe's own checkout page in a new tab. Your payment details are entered on Stripe's page and never pass through this plugin or your site. Stripe then sends you back to the onboarding page, and the plugin asks RapidTextAI to confirm the payment.
+* Stripe Terms: https://stripe.com/legal/ssa — Stripe Privacy Policy: https://stripe.com/privacy
+
 == Changelog ==
+
+= 5.1.0 =
+* Added Onboard your website: connect with WordPress, research your site, then create paused Pro campaigns and import your first articles as drafts
+* Sites that are not connected yet open onboarding first, with a link to skip it
+* Pro campaigns can follow an outline per topic and use your saved sources
+* Added an External services section to this readme
+
 
 = 5.0.0 =
 * Redesigned the whole admin to match RapidTextAI, with a new Dashboard
@@ -484,6 +511,9 @@ A: Yes, RapidTextAI follows strict security protocols. Your content and data are
 * Initial release with basic AI block functionality.
 
 == Upgrade Notice ==
+
+= 5.1.0 =
+New: Onboard your website researches your site and sets up your campaigns and first draft articles. Existing campaigns are unchanged.
 
 = 5.0.0 =
 Major update! A redesigned admin, researched Pro auto blogging, built-in SEO tools, and Brands. Your existing classic auto blogging campaigns keep working exactly as before.

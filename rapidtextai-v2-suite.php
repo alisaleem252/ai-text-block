@@ -146,6 +146,19 @@ function rapidtextai_v2_sanitize_campaign( array $in, array $existing = array() 
     $categories = array_key_exists( 'categories', $in ) ? $in['categories'] : ( $existing['categories'] ?? array() );
     $categories = array_values( array_filter( array_map( 'intval', (array) $categories ) ) );
 
+    // Headings per topic (lowercase title => [heading, ...]), from onboarding's outlines.
+    $outlines = array_key_exists( 'outlines', $in ) ? $in['outlines'] : ( $existing['outlines'] ?? array() );
+    $clean    = array();
+    foreach ( array_slice( (array) $outlines, 0, 200, true ) as $title => $heads ) {
+        $heads = array_values( array_filter( array_map( 'sanitize_text_field', array_map( 'strval', array_slice( (array) $heads, 0, 12 ) ) ) ) );
+        $title = mb_strtolower( sanitize_text_field( (string) $title ) );
+        if ( '' !== $title && $heads ) {
+            $clean[ $title ] = $heads;
+        }
+    }
+    $sources = array_key_exists( 'source_ids', $in ) ? $in['source_ids'] : ( $existing['source_ids'] ?? array() );
+    $sources = array_slice( array_values( array_filter( array_map( 'intval', (array) $sources ) ) ), 0, 5 );
+
     return array(
         'id'              => $existing['id'] ?? '',
         'name'            => $str( 'name', 'Untitled campaign' ) ?: 'Untitled campaign',
@@ -178,6 +191,9 @@ function rapidtextai_v2_sanitize_campaign( array $in, array $existing = array() 
         'last_status'     => $existing['last_status'] ?? '',
         'failures'        => (int) ( $existing['failures'] ?? 0 ),
         'migrated_from'   => $existing['migrated_from'] ?? '',
+        'outlines'        => $clean,
+        'source_ids'      => $sources,
+        'onboarding'      => $existing['onboarding'] ?? '',
     );
 }
 
@@ -256,6 +272,13 @@ function rapidtextai_v2_run_campaign( $id ) {
         'include_images' => $c['include_images'], 'image_count' => $c['image_count'], 'internal_links' => $c['internal_links'],
         'brand_id' => $c['brand_id'],
     );
+    $outline = $c['outlines'][ mb_strtolower( $item['topic'] ) ] ?? array();
+    if ( $outline ) {
+        $map['outline_hint'] = $outline;
+    }
+    if ( ! empty( $c['source_ids'] ) ) {
+        $map['source_ids'] = $c['source_ids'];
+    }
     foreach ( $map as $k => $v ) {
         $req->set_param( $k, $v );
     }
@@ -866,6 +889,7 @@ add_action( 'admin_menu', function () {
     }
     $order = array(
         'rapidtextai-dashboard',
+        'rapidtextai-onboard',
         'rapidtextai-pro-article',
         'rapidtextai-seo-tools',
         'rapidtextai-auto-blogging',
