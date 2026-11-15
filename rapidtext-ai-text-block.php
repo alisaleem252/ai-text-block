@@ -2,7 +2,7 @@
 /*
 * Plugin Name: AI Content Writer & Auto Blogging for WordPress by RapidTextAI
 * Description: Add an AI-powered tool to your wordpress to generate articles using advanced options and models for using meta box using Gemini, GPT4, Deepseek and Grok.
-* Version: 5.0.0
+* Version: 5.1.0
 * Author: Rapidtextai.com
 * Text Domain: rapidtextai
 * License: GPL-2.0-or-later
@@ -19,15 +19,18 @@ require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-rest-api.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-v2-article.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-v2-suite.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtext-ai-wp-connect.php';
+require_once RAPIDTEXTAI_PLUGIN_DIR . 'rapidtextai-onboarding.php';
 require_once RAPIDTEXTAI_PLUGIN_DIR . 'ext/campaign-assistant/campaign-assistant.php';
 
 add_action('admin_notices', 'rapidtextai_admin_notice');
 
 function rapidtextai_admin_notice() {
-    if (empty(get_option('rapidtextai_api_key'))) {
+    // phpcs:ignore WordPress.Security.NonceVerification.Recommended
+    $on_onboarding = isset($_GET['page']) && 'rapidtextai-onboard' === $_GET['page'];
+    if (empty(get_option('rapidtextai_api_key')) && ! $on_onboarding) {
         ?>
         <div class="notice notice-warning is-dismissible">
-            <p><?php _e('Authenticate with RapidTextAI. <a href="admin.php?page=rapidtextai-settings">Go to settings</a>', 'rapidtextai'); ?></p>
+            <p><?php echo wp_kses_post( sprintf( __( 'Connect your website to RapidTextAI to get started. <a href="%s">Connect and onboard</a>', 'rapidtextai' ), esc_url( admin_url( 'admin.php?page=rapidtextai-onboard' ) ) ) ); ?></p>
         </div>
         <?php
     }

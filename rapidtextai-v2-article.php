@@ -112,6 +112,12 @@ function rapidtextai_v2_build_request( WP_REST_Request $r ) {
         $req['outline_hint'] = array_slice( $outline, 0, 12 );
     }
 
+    // Saved sources (Brands > Sources) the article should draw on.
+    $source_ids = array_slice( array_values( array_filter( array_map( 'intval', (array) $r->get_param( 'source_ids' ) ) ) ), 0, 5 );
+    if ( $source_ids ) {
+        $req['source_ids'] = $source_ids;
+    }
+
     $voice_desc   = sanitize_textarea_field( (string) $r->get_param( 'voice_description' ) );
     $voice_sample = sanitize_textarea_field( (string) $r->get_param( 'voice_sample' ) );
     if ( '' !== $voice_desc || '' !== $voice_sample ) {
